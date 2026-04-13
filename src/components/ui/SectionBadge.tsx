@@ -12,19 +12,18 @@ export default function SectionBadge({ label, className = '' }: SectionBadgeProp
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px',
+        gap: '7px',
         fontSize: '11px',
         fontWeight: 600,
-        letterSpacing: '0.12em',
+        letterSpacing: '0.14em',
         textTransform: 'uppercase',
         color: 'var(--color-accent)',
       }}
     >
-      {/* Red dot */}
       <span
         style={{
-          width: '6px',
-          height: '6px',
+          width: '5px',
+          height: '5px',
           borderRadius: '50%',
           backgroundColor: 'var(--color-accent)',
           flexShrink: 0,

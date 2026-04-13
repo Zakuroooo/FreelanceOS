@@ -4,7 +4,7 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'FreelanceOS — Your entire freelance business, on autopilot.',
@@ -18,9 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} style={{ backgroundColor: '#08080F' }}>
+      <body className={inter.variable} style={{ backgroundColor: '#060608', fontFamily: 'Inter, -apple-system, sans-serif' }}>
         <Navbar />
-        <main>{children}</main>
+        {children}
         <Footer />
       </body>
     </html>

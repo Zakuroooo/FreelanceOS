@@ -9,15 +9,12 @@ interface WobbleCardProps {
   style?: React.CSSProperties
 }
 
-const MAX_TILT = 8 // degrees, as per CLAUDE.md
+const MAX_TILT = 3 // degrees — subtle, not dramatic
 
 export default function WobbleCard({ children, className = '', style }: WobbleCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
-
-  const rotateX = useSpring(0, { stiffness: 400, damping: 30 })
-  const rotateY = useSpring(0, { stiffness: 400, damping: 30 })
-  const [glowX, setGlowX] = useState(50)
-  const [glowY, setGlowY] = useState(50)
+  const rotateX = useSpring(0, { stiffness: 300, damping: 40 })
+  const rotateY = useSpring(0, { stiffness: 300, damping: 40 })
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     const card = cardRef.current
@@ -27,12 +24,8 @@ export default function WobbleCard({ children, className = '', style }: WobbleCa
     const centerY = rect.top + rect.height / 2
     const dx = e.clientX - centerX
     const dy = e.clientY - centerY
-    const tiltY = (dx / (rect.width / 2)) * MAX_TILT
-    const tiltX = -(dy / (rect.height / 2)) * MAX_TILT
-    rotateX.set(tiltX)
-    rotateY.set(tiltY)
-    setGlowX(((e.clientX - rect.left) / rect.width) * 100)
-    setGlowY(((e.clientY - rect.top) / rect.height) * 100)
+    rotateX.set(-(dy / (rect.height / 2)) * MAX_TILT)
+    rotateY.set((dx / (rect.width / 2)) * MAX_TILT)
   }
 
   function handleMouseLeave() {
@@ -41,10 +34,7 @@ export default function WobbleCard({ children, className = '', style }: WobbleCa
   }
 
   return (
-    <div
-      style={{ perspective: '1000px' }}
-      className={className}
-    >
+    <div style={{ perspective: '1200px' }} className={className}>
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
@@ -53,26 +43,14 @@ export default function WobbleCard({ children, className = '', style }: WobbleCa
           rotateX,
           rotateY,
           transformStyle: 'preserve-3d',
-          position: 'relative',
-          overflow: 'hidden',
           backgroundColor: 'var(--color-surface)',
           border: '1px solid var(--color-border)',
-          borderRadius: '16px',
-          cursor: 'default',
+          borderRadius: '4px', // sharp
+          transition: 'border-color 0.2s ease',
           ...style,
         }}
+        whileHover={{ borderColor: 'var(--color-border-hover)' }}
       >
-        {/* Spotlight glow */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: `radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,255,255,0.06) 0%, transparent 60%)`,
-            pointerEvents: 'none',
-            transition: 'background 0.1s ease',
-            borderRadius: '16px',
-          }}
-        />
         {children}
       </motion.div>
     </div>

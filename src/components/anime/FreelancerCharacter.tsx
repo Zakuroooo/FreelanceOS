@@ -34,8 +34,8 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
   })
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 200,
-    damping: 30,
+    stiffness: 80,
+    damping: 25,
   })
 
   // Derived motion values
@@ -46,7 +46,7 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
   )
   const glowOpacity = useTransform(smoothProgress, [0, 0.5, 1], [0, 0.06, 0.15])
   const scale       = useTransform(smoothProgress, [0, 0.75, 1], [1.0, 1.0, 1.05])
-  const headRotate  = useTransform(smoothProgress, [0, 0.25, 0.5, 1], [18, 0, -5, 0])
+  const headRotate  = useTransform(smoothProgress, [0, 0.25, 0.5, 1], [12, 0, -3, 0])
 
   // Opacity gates — simple useTransform returning 0 or 1 range
   const laptopOpacity    = useTransform(smoothProgress, [0.45, 0.55], [0, 1])
