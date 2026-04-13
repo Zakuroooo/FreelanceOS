@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useEffect, useState } from 'react'
 import {
   motion,
   useScroll,
@@ -13,13 +13,19 @@ interface FreelancerCharacterProps {
   heroRef: React.RefObject<HTMLElement | null>
 }
 
-// Speech bubbles for each state
 const speeches = [
   { key: 'lost',      text: 'Spending all day finding clients...' },
   { key: 'searching', text: 'Wait... I can automate this?!' },
   { key: 'sending',   text: 'Pitches sent!' },
-  { key: 'paid',      text: 'Client paid! 💸' },
+  { key: 'paid',      text: 'Client paid!' },
 ]
+
+function getSpeechIndex(progress: number): number {
+  if (progress < 0.25) return 0
+  if (progress < 0.5) return 1
+  if (progress < 0.75) return 2
+  return 3
+}
 
 export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProps) {
   const { scrollYProgress } = useScroll({
@@ -27,46 +33,44 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
     offset: ['start start', 'end end'],
   })
 
-  // Smooth spring
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 200,
     damping: 30,
   })
 
-  // Body color: #444 → #888 → rgba(255,45,45,0.6) → #FF2D2D
+  // Derived motion values
   const bodyColor = useTransform(
     smoothProgress,
     [0, 0.25, 0.5, 0.75, 1],
     ['#444444', '#666666', '#888888', 'rgba(255,45,45,0.7)', '#FF2D2D']
   )
+  const glowOpacity = useTransform(smoothProgress, [0, 0.5, 1], [0, 0.06, 0.15])
+  const scale       = useTransform(smoothProgress, [0, 0.75, 1], [1.0, 1.0, 1.05])
+  const headRotate  = useTransform(smoothProgress, [0, 0.25, 0.5, 1], [18, 0, -5, 0])
 
-  // Glow opacity
-  const glowOpacity = useTransform(
-    smoothProgress,
-    [0, 0.5, 1],
-    [0, 0.06, 0.15]
-  )
+  // Opacity gates — simple useTransform returning 0 or 1 range
+  const laptopOpacity    = useTransform(smoothProgress, [0.45, 0.55], [0, 1])
+  const starEyesOpacity  = useTransform(smoothProgress, [0.78, 0.88], [0, 1])
 
-  // Scale
-  const scale = useTransform(
-    smoothProgress,
-    [0, 0.75, 1],
-    [1.0, 1.0, 1.05]
-  )
+  const paperOpacity  = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 1, 0])
+  const paper2Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [0.8, 0.8, 0])
+  const sweatOpacity  = useTransform(smoothProgress, [0, 0.22, 0.32], [1, 1, 0])
+  const pinOpacity    = useTransform(smoothProgress, [0.22, 0.3, 0.48, 0.55], [0, 1, 1, 0])
+  const questionOpacity = useTransform(smoothProgress, [0.22, 0.3, 0.48, 0.55], [0, 1, 1, 0])
+  const env1Opacity   = useTransform(smoothProgress, [0.48, 0.55, 0.73, 0.8], [0, 1, 1, 0])
+  const env2Opacity   = useTransform(smoothProgress, [0.5, 0.58, 0.73, 0.8], [0, 1, 1, 0])
+  const dollar1Opacity = useTransform(smoothProgress, [0.73, 0.82], [0, 1])
+  const dollar2Opacity = useTransform(smoothProgress, [0.78, 0.88], [0, 1])
+  const confettiOpacity = useTransform(smoothProgress, [0.8, 0.9], [0, 1])
 
-  // Head rotation: down → up
-  const headRotate = useTransform(
-    smoothProgress,
-    [0, 0.25, 0.5, 1],
-    [20, 0, -5, 0]
-  )
-
-  // Speech index
-  const speechIndex = useTransform(
-    smoothProgress,
-    [0, 0.25, 0.5, 0.75],
-    [0, 1, 2, 3]
-  )
+  // Speech bubble state — read raw scroll value into React state
+  const [speechIdx, setSpeechIdx] = useState(0)
+  useEffect(() => {
+    const unsub = smoothProgress.on('change', (v) => {
+      setSpeechIdx(getSpeechIndex(v))
+    })
+    return unsub
+  }, [smoothProgress])
 
   return (
     <div
@@ -80,7 +84,7 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
         userSelect: 'none',
       }}
     >
-      {/* Glow behind character */}
+      {/* Glow */}
       <motion.div
         style={{
           position: 'absolute',
@@ -103,253 +107,96 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
           overflow="visible"
         >
           {/* Body */}
-          <motion.rect
-            x="50"
-            y="110"
-            width="80"
-            height="110"
-            rx="12"
-            style={{ fill: bodyColor }}
-          />
+          <motion.rect x="50" y="110" width="80" height="110" rx="12" style={{ fill: bodyColor }} />
 
-          {/* Left arm — raised or down based on state */}
-          <motion.rect
-            x="20"
-            y="120"
-            width="32"
-            height="14"
-            rx="7"
-            style={{ fill: bodyColor }}
-            animate={{ rotate: 0 }}
-          />
-
-          {/* Right arm */}
-          <motion.rect
-            x="128"
-            y="120"
-            width="32"
-            height="14"
-            rx="7"
-            style={{ fill: bodyColor }}
-          />
+          {/* Arms */}
+          <motion.rect x="20" y="120" width="32" height="14" rx="7" style={{ fill: bodyColor }} />
+          <motion.rect x="128" y="120" width="32" height="14" rx="7" style={{ fill: bodyColor }} />
 
           {/* Legs */}
-          <motion.rect
-            x="60"
-            y="214"
-            width="22"
-            height="52"
-            rx="11"
-            style={{ fill: bodyColor }}
-          />
-          <motion.rect
-            x="98"
-            y="214"
-            width="22"
-            height="52"
-            rx="11"
-            style={{ fill: bodyColor }}
-          />
+          <motion.rect x="60" y="214" width="22" height="52" rx="11" style={{ fill: bodyColor }} />
+          <motion.rect x="98" y="214" width="22" height="52" rx="11" style={{ fill: bodyColor }} />
 
           {/* Neck */}
-          <motion.rect
-            x="80"
-            y="96"
-            width="20"
-            height="20"
-            rx="4"
-            style={{ fill: bodyColor }}
-          />
+          <motion.rect x="80" y="96" width="20" height="20" rx="4" style={{ fill: bodyColor }} />
 
-          {/* Head */}
+          {/* Head group */}
           <motion.g style={{ originX: '90px', originY: '80px', rotate: headRotate }}>
-            {/* Head shape */}
-            <motion.rect
-              x="55"
-              y="44"
-              width="70"
-              height="66"
-              rx="24"
-              style={{ fill: bodyColor }}
-            />
-
-            {/* Eyes — wide or normal */}
-            <motion.circle cx="75" cy="68" r="7" fill="var(--color-bg)" />
-            <motion.circle cx="105" cy="68" r="7" fill="var(--color-bg)" />
+            <motion.rect x="55" y="44" width="70" height="66" rx="24" style={{ fill: bodyColor }} />
+            {/* Eyes */}
+            <circle cx="75" cy="68" r="7" fill="var(--color-bg)" />
+            <circle cx="105" cy="68" r="7" fill="var(--color-bg)" />
             {/* Pupils */}
-            <motion.circle cx="77" cy="68" r="3.5" fill="var(--color-text-primary)" />
-            <motion.circle cx="107" cy="68" r="3.5" fill="var(--color-text-primary)" />
-
+            <circle cx="77" cy="68" r="3.5" fill="var(--color-text-primary)" />
+            <circle cx="107" cy="68" r="3.5" fill="var(--color-text-primary)" />
             {/* Mouth */}
-            <motion.path
-              d="M 76 84 Q 90 94 104 84"
-              stroke="var(--color-bg)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-            />
-
+            <path d="M 76 84 Q 90 94 104 84" stroke="var(--color-bg)" strokeWidth="3" strokeLinecap="round" fill="none" />
             {/* Hair */}
-            <motion.rect
-              x="55"
-              y="36"
-              width="70"
-              height="18"
-              rx="12"
-              style={{ fill: bodyColor }}
-            />
+            <motion.rect x="55" y="36" width="70" height="18" rx="12" style={{ fill: bodyColor }} />
           </motion.g>
 
-          {/* Laptop on lap (visible from state 3+) */}
-          <motion.g
-            style={{
-              opacity: useTransform(smoothProgress, [0.45, 0.55], [0, 1]),
-            }}
-          >
+          {/* Laptop (STATE 3+) */}
+          <motion.g style={{ opacity: laptopOpacity }}>
             <rect x="44" y="185" width="92" height="56" rx="6" fill="var(--color-surface-2)" />
             <rect x="48" y="189" width="84" height="46" rx="4" fill="var(--color-accent)" opacity="0.15" />
-            {/* Screen glow */}
             <rect x="48" y="189" width="84" height="5" rx="2" fill="var(--color-accent)" opacity="0.5" />
           </motion.g>
 
-          {/* Stars in eyes (state 4) */}
-          <motion.g
-            style={{
-              opacity: useTransform(smoothProgress, [0.78, 0.88], [0, 1]),
-            }}
-          >
+          {/* Star eyes (STATE 4) */}
+          <motion.g style={{ opacity: starEyesOpacity }}>
             <text x="68" y="72" fontSize="12" textAnchor="middle" fill="var(--color-warning)">★</text>
             <text x="112" y="72" fontSize="12" textAnchor="middle" fill="var(--color-warning)">★</text>
           </motion.g>
         </svg>
       </motion.div>
 
-      {/* Floating elements — CSS @keyframes only (per CLAUDE.md) */}
+      {/* Floating — CSS @keyframes only (CLAUDE.md rule 9) */}
 
-      {/* STATE 1: Papers flying (chaos) — visible 0–25% */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '60px',
-          right: '-10px',
-          opacity: useTransform(smoothProgress, [0, 0.2, 0.3], [1, 1, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      {/* STATE 1: Papers */}
+      <motion.div style={{ position: 'absolute', top: '60px', right: '-10px', opacity: paperOpacity, pointerEvents: 'none' }}>
         <div className="animate-float-chaos" style={{ fontSize: '20px' }}>📄</div>
       </motion.div>
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '90px',
-          left: '-5px',
-          opacity: useTransform(smoothProgress, [0, 0.2, 0.3], [0.8, 0.8, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      <motion.div style={{ position: 'absolute', top: '90px', left: '-5px', opacity: paper2Opacity, pointerEvents: 'none' }}>
         <div className="animate-float-chaos" style={{ fontSize: '16px', animationDelay: '0.5s' }}>📋</div>
       </motion.div>
 
-      {/* Sweat drop STATE 1 */}
+      {/* STATE 1: Sweat drop */}
       <motion.div
-        style={{
-          position: 'absolute',
-          top: '50px',
-          right: '30px',
-          opacity: useTransform(smoothProgress, [0, 0.22, 0.32], [1, 1, 0]),
-          pointerEvents: 'none',
-          fontSize: '14px',
-        }}
+        style={{ position: 'absolute', top: '50px', right: '30px', opacity: sweatOpacity, pointerEvents: 'none', fontSize: '14px' }}
         className="animate-sweat-drop"
       >
         💧
       </motion.div>
 
-      {/* STATE 2: Location pin bounce + question mark — 25–50% */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          opacity: useTransform(smoothProgress, [0.22, 0.3, 0.48, 0.55], [0, 1, 1, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      {/* STATE 2: Pin + question */}
+      <motion.div style={{ position: 'absolute', top: '20px', right: '20px', opacity: pinOpacity, pointerEvents: 'none' }}>
         <div className="animate-pin-bounce" style={{ fontSize: '22px' }}>📍</div>
       </motion.div>
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '20px',
-          opacity: useTransform(smoothProgress, [0.22, 0.3, 0.48, 0.55], [0, 1, 1, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      <motion.div style={{ position: 'absolute', top: '10px', left: '20px', opacity: questionOpacity, pointerEvents: 'none' }}>
         <div className="animate-float-bob" style={{ fontSize: '20px' }}>❓</div>
       </motion.div>
 
-      {/* STATE 3: Envelopes fly right — 50–75% */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '80px',
-          left: '0px',
-          opacity: useTransform(smoothProgress, [0.48, 0.55, 0.73, 0.8], [0, 1, 1, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      {/* STATE 3: Envelopes */}
+      <motion.div style={{ position: 'absolute', top: '80px', left: '0px', opacity: env1Opacity, pointerEvents: 'none' }}>
         <div className="animate-fly-right" style={{ fontSize: '18px' }}>✉️</div>
       </motion.div>
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '110px',
-          left: '10px',
-          opacity: useTransform(smoothProgress, [0.5, 0.58, 0.73, 0.8], [0, 1, 1, 0]),
-          pointerEvents: 'none',
-        }}
-      >
+      <motion.div style={{ position: 'absolute', top: '110px', left: '10px', opacity: env2Opacity, pointerEvents: 'none' }}>
         <div className="animate-fly-right" style={{ fontSize: '18px', animationDelay: '0.6s' }}>✉️</div>
       </motion.div>
 
-      {/* STATE 4: Dollar signs + confetti  — 75–100% */}
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          left: '10px',
-          opacity: useTransform(smoothProgress, [0.73, 0.82], [0, 1]),
-          pointerEvents: 'none',
-        }}
-      >
+      {/* STATE 4: Dollar + confetti */}
+      <motion.div style={{ position: 'absolute', top: '10px', left: '10px', opacity: dollar1Opacity, pointerEvents: 'none' }}>
         <div className="animate-float-up" style={{ fontSize: '20px', color: 'var(--color-warning)' }}>$</div>
       </motion.div>
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '0px',
-          right: '30px',
-          opacity: useTransform(smoothProgress, [0.78, 0.88], [0, 1]),
-          pointerEvents: 'none',
-        }}
-      >
+      <motion.div style={{ position: 'absolute', top: '0px', right: '30px', opacity: dollar2Opacity, pointerEvents: 'none' }}>
         <div className="animate-float-up" style={{ fontSize: '20px', color: 'var(--color-warning)', animationDelay: '0.4s' }}>$</div>
       </motion.div>
-      <motion.div
-        style={{
-          position: 'absolute',
-          top: '-10px',
-          left: '50%',
-          opacity: useTransform(smoothProgress, [0.8, 0.9], [0, 1]),
-          pointerEvents: 'none',
-        }}
-      >
+      <motion.div style={{ position: 'absolute', top: '-10px', left: '50%', opacity: confettiOpacity, pointerEvents: 'none' }}>
         <div className="animate-confetti-fall" style={{ fontSize: '14px' }}>🎊</div>
       </motion.div>
 
       {/* Speech bubble */}
-      <motion.div
+      <div
         style={{
           position: 'absolute',
           bottom: '-10px',
@@ -357,41 +204,34 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
           transform: 'translateX(-50%)',
           whiteSpace: 'nowrap',
           pointerEvents: 'none',
+          minHeight: '36px',
         }}
       >
         <AnimatePresence mode="wait">
-          {speeches.map((s, i) => (
-            <motion.div
-              key={s.key}
+          <motion.div
+            key={speeches[speechIdx]?.key}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div
               style={{
-                display: useTransform(
-                  speechIndex,
-                  (v) => (Math.round(v) === i ? 'block' : 'none')
-                ) as unknown as string,
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '20px',
+                padding: '8px 14px',
+                fontSize: '12px',
+                color: 'var(--color-text-secondary)',
+                fontWeight: 500,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
               }}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3 }}
             >
-              <div
-                style={{
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: '20px',
-                  padding: '8px 14px',
-                  fontSize: '12px',
-                  color: 'var(--color-text-secondary)',
-                  fontWeight: 500,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                }}
-              >
-                {s.text}
-              </div>
-            </motion.div>
-          ))}
+              {speeches[speechIdx]?.text}
+            </div>
+          </motion.div>
         </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   )
 }
