@@ -3,110 +3,62 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
 /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS — strictly #5A0D0C / white / deep black ONLY
+   TOKENS — strictly #5A0D0C / white / deep black only
 ════════════════════════════════════════════════════════════════ */
 const C = {
-  bg:        '#050508',
-  surface:   'rgba(255,255,255,0.03)',
-  border:    'rgba(255,255,255,0.07)',
-  borderDim: 'rgba(255,255,255,0.04)',
-  white:     '#F5F5F8',        // primary text
-  mid:       'rgba(255,255,255,0.38)',  // secondary text
-  muted:     'rgba(255,255,255,0.18)', // muted labels
-  dim:       'rgba(255,255,255,0.1)',   // very muted
-  accent:    '#5A0D0C',        // brand maroon
-  accentDim: 'rgba(90,13,12,0.18)',
-  accentGlow:'rgba(90,13,12,0.6)',
+  bg:         '#040407',
+  panel:      'rgba(10,10,18,0.97)',
+  panelLight: 'rgba(14,14,22,0.97)',
+  border:     'rgba(255,255,255,0.1)',
+  borderDim:  'rgba(255,255,255,0.06)',
+  white:      '#F5F5F8',
+  mid:        'rgba(255,255,255,0.45)',
+  muted:      'rgba(255,255,255,0.25)',
+  dim:        'rgba(255,255,255,0.13)',
+  accent:     '#5A0D0C',
+  accentTxt:  'rgba(190,72,68,1)',
+  accentDim:  'rgba(90,13,12,0.2)',
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CONSTANTS
-════════════════════════════════════════════════════════════════ */
-const INNER_W   = 940
-const INNER_H   = 478
-const COMPANY   = 'Apex Digital Co.'
+const INNER_W = 880
+const INNER_H = 452
 
-const TABLE_ROWS = [
-  { abbr: 'WC', company: 'Wave Commerce',   industry: 'E-commerce', score: 91, status: 'Replied' },
-  { abbr: 'BS', company: 'Bright Studio',   industry: 'Design',     score: 87, status: 'Sent' },
-  { abbr: 'PD', company: 'Peak Digital',    industry: 'SaaS',       score: 95, status: 'Deal' },
-  { abbr: 'NC', company: 'Nova Collective', industry: 'Marketing',  score: 84, status: 'Queued' },
+const SEARCH_TEXT = 'fintech startups US'
+const PITCH_TEXT  = 'Hi Sarah, I noticed Bright Studio is scaling — I help design-led brands automate client acquisition at 3× the speed...'
+
+const CLIENTS = [
+  { abbr: 'WC', company: 'Wave Commerce',   cat: 'E-commerce',  score: 91 },
+  { abbr: 'BS', company: 'Bright Studio',   cat: 'Design Lab',  score: 87 },
+  { abbr: 'PD', company: 'Peak Digital',    cat: 'SaaS',        score: 95 },
+  { abbr: 'NC', company: 'Nova Collective', cat: 'Marketing',   score: 83 },
 ]
 
-// Monochromatic status badges
-const STATUS: Record<string, { bg: string; txt: string }> = {
-  Deal:    { bg: 'rgba(255,255,255,0.09)', txt: 'rgba(255,255,255,0.78)' },
-  Replied: { bg: 'rgba(255,255,255,0.06)', txt: 'rgba(255,255,255,0.55)' },
-  Sent:    { bg: 'rgba(90,13,12,0.22)',    txt: 'rgba(200,80,75,1)' },
-  Queued:  { bg: 'rgba(255,255,255,0.03)', txt: 'rgba(255,255,255,0.28)' },
-}
-
-const NAV_ITEMS = [
-  'Overview', 'Discover', 'Clients', 'Pitches', 'Outreach', 'Deals',
+const CTX_ACTIONS = [
+  { label: 'Generate Pitch',     keys: ['↵'],        ref: true },
+  { label: 'Save to CRM',        keys: ['⌘', 'S'],   ref: false },
+  { label: 'Cold Email Draft',   keys: ['⌘', 'E'],   ref: false },
+  { label: 'Schedule Follow-up', keys: ['⌘', 'F'],   ref: false },
 ]
 
-/* ═══════════════════════════════════════════════════════════════
-   SUB-COMPONENTS
-════════════════════════════════════════════════════════════════ */
-
-function Cursor({ x, y, clicking }: { x: number; y: number; clicking: boolean }) {
+/* ─── KBD tag ─────────────────────────────────────────────── */
+function Kbd({ s }: { s: string }) {
   return (
-    <>
-      <style>{`
-        @keyframes ripple-dash {
-          from { transform: translate(-3px,-3px) scale(0.4); opacity: 0.7; }
-          to   { transform: translate(-3px,-3px) scale(2.8); opacity: 0; }
-        }
-        @keyframes blink-caret {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0; }
-        }
-        @keyframes accent-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(90,13,12,0.5); }
-          50%       { box-shadow: 0 0 0 5px rgba(90,13,12,0); }
-        }
-      `}</style>
-
-      {/* Arrow cursor */}
-      <div style={{
-        position: 'absolute', left: 0, top: 0,
-        transform: `translate(${x}px, ${y}px)`,
-        transition: 'transform 0.7s cubic-bezier(0.33, 1, 0.68, 1)',
-        pointerEvents: 'none', zIndex: 999, willChange: 'transform',
-      }}>
-        <svg width="18" height="22" viewBox="0 0 18 22" fill="none"
-          style={{
-            transform: clicking ? 'scale(0.8)' : 'scale(1)',
-            transition: 'transform 0.1s ease',
-            filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.95))',
-            display: 'block',
-          }}
-        >
-          <path d="M2.5 2L2.5 17.5L7 12.8L10.2 19.5L12.2 18.6L9 11.8L16 11.8L2.5 2Z"
-            fill="white"
-            stroke="rgba(0,0,0,0.6)"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </div>
-
-      {/* Click ripple */}
-      {clicking && (
-        <div key={Math.random()} style={{
-          position: 'absolute', left: x - 10, top: y - 10,
-          width: '20px', height: '20px',
-          borderRadius: '50%',
-          border: `1.5px solid rgba(90,13,12,0.55)`,
-          animation: 'ripple-dash 0.4s ease-out forwards',
-          pointerEvents: 'none', zIndex: 998,
-        }} />
-      )}
-    </>
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      minWidth: '16px', height: '16px', padding: '0 3px',
+      background: 'rgba(255,255,255,0.07)',
+      border: '1px solid rgba(255,255,255,0.13)',
+      borderRadius: '3px',
+      fontSize: '8px', fontWeight: 700, color: C.muted,
+      letterSpacing: 0,
+    }}>
+      {s}
+    </span>
   )
 }
 
-function Typewriter({ active, text }: { active: boolean; text: string }) {
+/* ─── Typewriter ──────────────────────────────────────────── */
+function Typewriter({ active, text, speed = 65 }: { active: boolean; text: string; speed?: number }) {
   const [shown, setShown] = useState('')
   useEffect(() => {
     if (!active) { setShown(''); return }
@@ -114,176 +66,158 @@ function Typewriter({ active, text }: { active: boolean; text: string }) {
     const id = setInterval(() => {
       i++; setShown(text.slice(0, i))
       if (i >= text.length) clearInterval(id)
-    }, 56)
+    }, speed)
     return () => clearInterval(id)
-  }, [active, text])
+  }, [active, text, speed])
   return (
     <>
       {shown}
       {active && shown.length < text.length && (
-        <span style={{
-          display: 'inline-block', width: '1.5px', height: '11px',
-          background: C.accent, marginLeft: '1px',
-          verticalAlign: 'text-bottom',
-          animation: 'blink-caret 0.7s step-end infinite',
-        }} />
+        <span style={{ width: '1.5px', height: '13px', background: C.white, display: 'inline-block', marginLeft: '1px', verticalAlign: 'text-bottom', animation: 'tw-blink 0.65s step-end infinite' }} />
       )}
     </>
   )
 }
 
-function ScoreBar({ fill }: { fill: boolean }) {
+/* ─── Cursor ──────────────────────────────────────────────── */
+function Cursor({ x, y, clicking }: { x: number; y: number; clicking: boolean }) {
+  const [ripple, setRipple] = useState(false)
+  useEffect(() => {
+    if (!clicking) return
+    setRipple(true)
+    const t = setTimeout(() => setRipple(false), 420)
+    return () => clearTimeout(t)
+  }, [clicking])
+
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-        <span style={{ fontSize: '9px', color: C.muted, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          AI Score
-        </span>
-        <span style={{ fontSize: '11px', fontWeight: 700, color: fill ? C.white : C.dim, transition: 'color 0.3s' }}>
-          {fill ? '94%' : '—'}
-        </span>
+    <>
+      <style>{`
+        @keyframes tw-blink   { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes c-ripple   { from{transform:translate(-4px,-4px)scale(0.3);opacity:0.85} to{transform:translate(-4px,-4px)scale(3.2);opacity:0} }
+        @keyframes pitch-in   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes ctx-in     { from{opacity:0;transform:scale(0.94) translateY(-4px)} to{opacity:1;transform:scale(1) translateY(0)} }
+      `}</style>
+
+      {/* Arrow */}
+      <div style={{ position: 'absolute', left: 0, top: 0, transform: `translate(${x}px,${y}px)`, transition: 'transform 0.7s cubic-bezier(0.33,1,0.68,1)', pointerEvents: 'none', zIndex: 999, willChange: 'transform' }}>
+        <svg width="17" height="21" viewBox="0 0 17 21" fill="none"
+          style={{ transform: clicking ? 'scale(0.8)' : 'scale(1)', transition: 'transform 0.1s', filter: 'drop-shadow(0 2px 14px rgba(0,0,0,0.99))', display: 'block' }}>
+          <path d="M2 2L2 17L6.5 12.5L9.5 19L11.5 18.2L8.5 11.8L15.5 11.8L2 2Z"
+            fill="white" stroke="rgba(0,0,0,0.55)" strokeWidth="0.8" strokeLinejoin="round" />
+        </svg>
       </div>
-      <div style={{ height: '1.5px', background: C.dim, borderRadius: '1px', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%',
-          width: fill ? '94%' : '0%',
-          background: C.accent,
-          transition: 'width 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
-        }} />
-      </div>
-    </div>
+
+      {/* Ripple */}
+      {ripple && (
+        <div style={{ position: 'absolute', left: x, top: y, width: '18px', height: '18px', borderRadius: '50%', border: '1.5px solid rgba(90,13,12,0.55)', animation: 'c-ripple 0.42s ease-out forwards', pointerEvents: 'none', zIndex: 998 }} />
+      )}
+    </>
   )
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
+   MAIN
 ════════════════════════════════════════════════════════════════ */
 export default function AnimatedDashboard() {
-  const wrapperRef  = useRef<HTMLDivElement>(null)
-  const innerRef    = useRef<HTMLDivElement>(null)
-  const discoverRef = useRef<HTMLDivElement>(null)
-  const generateRef = useRef<HTMLDivElement>(null)
-  const inputRef    = useRef<HTMLDivElement>(null)
-  const sendRef     = useRef<HTMLButtonElement>(null)
-  const scaleRef    = useRef(1)
+  const wrapperRef   = useRef<HTMLDivElement>(null)
+  const innerRef     = useRef<HTMLDivElement>(null)
+  const searchRef    = useRef<HTMLDivElement>(null)
+  const row1Ref      = useRef<HTMLDivElement>(null)   // Bright Studio
+  const genRef       = useRef<HTMLDivElement>(null)   // "Generate Pitch" in ctx menu
+  const sendRef      = useRef<HTMLButtonElement>(null)
+  const scaleRef     = useRef(1)
 
   const [scale,       setScale]       = useState(1)
-  const [cursorX,     setCursorX]     = useState(300)
-  const [cursorY,     setCursorY]     = useState(60)
+  const [cx,          setCx]          = useState(240)
+  const [cy,          setCy]          = useState(90)
   const [clicking,    setClicking]    = useState(false)
-  const [activeNav,   setActiveNav]   = useState('Overview')
-  const [visibleRows, setVisibleRows] = useState(0)
-  const [panelOpen,   setPanelOpen]   = useState(false)
   const [typing,      setTyping]      = useState(false)
-  const [scoreFill,   setScoreFill]   = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [newRow,      setNewRow]      = useState(false)
+  const [rows,        setRows]        = useState(0)
+  const [selRow,      setSelRow]      = useState(-1)
+  const [showCtx,     setShowCtx]     = useState(false)
+  const [showPitch,   setShowPitch]   = useState(false)
+  const [pitchTyping, setPitchTyping] = useState(false)
+  const [showOk,      setShowOk]      = useState(false)
 
-  /* ── ResizeObserver keeps inner canvas scaled to wrapper ── */
+  /* ResizeObserver */
   useEffect(() => {
     if (!wrapperRef.current) return
     const obs = new ResizeObserver(([e]) => {
       if (!e) return
       const s = e.contentRect.width / INNER_W
-      scaleRef.current = s
-      setScale(s)
+      scaleRef.current = s; setScale(s)
     })
     obs.observe(wrapperRef.current)
     return () => obs.disconnect()
   }, [])
 
-  /* ── Dynamic cursor targeting from refs ── */
   const getPos = useCallback((el: HTMLElement | null) => {
-    if (!el || !innerRef.current) return { x: 300, y: 60 }
+    if (!el || !innerRef.current) return { x: 240, y: 90 }
     const ir = innerRef.current.getBoundingClientRect()
     const er = el.getBoundingClientRect()
     const s  = scaleRef.current || 1
-    return {
-      x: (er.left - ir.left + er.width  * 0.5) / s,
-      y: (er.top  - ir.top  + er.height * 0.5) / s,
-    }
+    return { x: (er.left - ir.left + er.width * 0.5) / s, y: (er.top - ir.top + er.height * 0.5) / s }
   }, [])
 
-  /* ── Animation loop ── */
+  /* Animation loop */
   useEffect(() => {
     let cancelled = false
     const w = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
-
-    const moveTo = (el: HTMLElement | null) => {
-      const p = getPos(el)
-      setCursorX(p.x); setCursorY(p.y)
-    }
-    const click = async () => {
-      if (cancelled) return
-      setClicking(true)
-      await w(160)
-      if (!cancelled) setClicking(false)
-    }
+    const mov = (el: HTMLElement | null) => { const p = getPos(el); setCx(p.x); setCy(p.y) }
+    const clk = async () => { if (cancelled) return; setClicking(true); await w(160); if (!cancelled) setClicking(false) }
 
     const loop = async () => {
       while (!cancelled) {
         // RESET
-        setActiveNav('Overview'); setVisibleRows(0)
-        setPanelOpen(false); setTyping(false)
-        setScoreFill(false); setShowSuccess(false); setNewRow(false)
-        setCursorX(300); setCursorY(60)
-        await w(1100)
-        if (cancelled) break
+        setTyping(false); setRows(0); setSelRow(-1)
+        setShowCtx(false); setShowPitch(false); setPitchTyping(false); setShowOk(false)
+        setCx(280); setCy(90)
+        await w(1100); if (cancelled) break
 
-        // → Discover nav
-        moveTo(discoverRef.current)
+        // → Search box
+        mov(searchRef.current)
         await w(820)
-        await click()
-        if (!cancelled) setActiveNav('Discover')
+        await clk()
         await w(300)
-
-        // Rows appear
-        for (let i = 1; i <= 4; i++) {
-          if (cancelled) break
-          await w(240); setVisibleRows(i)
-        }
-        await w(900)
-        if (cancelled) break
-
-        // → Generate Pitch button
-        moveTo(generateRef.current)
-        await w(820)
-        await click()
-        if (!cancelled) setPanelOpen(true)
-        await w(700) // wait for panel transition
-        if (cancelled) break
-
-        // → Company input
-        moveTo(inputRef.current)
-        await w(380)
         if (!cancelled) setTyping(true)
-        await w(1250)
+        await w(1350) // typing "fintech startups US" ≈19 chars × 65ms
 
-        // Score fills
-        if (!cancelled) setScoreFill(true)
-        await w(1350)
-        if (cancelled) break
+        // Results appear
+        for (let i = 1; i <= 4; i++) { if (cancelled) break; await w(230); setRows(i) }
+        await w(800); if (cancelled) break
 
-        // → Send button
-        moveTo(sendRef.current)
+        // → Row 1 (Bright Studio)
+        mov(row1Ref.current)
+        await w(820)
+        if (!cancelled) setSelRow(1)
+        await w(300)
+        await clk()
+        if (!cancelled) setShowCtx(true)
+        await w(260); if (cancelled) break
+
+        // → Generate Pitch in context menu
+        mov(genRef.current)
         await w(720)
-        await click()
-        if (!cancelled) setShowSuccess(true)
-        await w(380)
-        if (!cancelled) setNewRow(true)
-        await w(2200)
+        await clk()
+        if (!cancelled) { setShowCtx(false); setShowPitch(true) }
+        await w(420)
+        if (!cancelled) setPitchTyping(true)
+        await w(2200) // typing pitch ≈113 chars × 28ms
 
-        // Collapse
-        if (!cancelled) {
-          setShowSuccess(false); setPanelOpen(false)
-          setTyping(false); setScoreFill(false); setActiveNav('Overview')
-        }
-        await w(620)
-        if (!cancelled) { setVisibleRows(0); setNewRow(false) }
+        // → Send
+        mov(sendRef.current)
+        await w(760)
+        await clk()
+        if (!cancelled) setShowOk(true)
+        await w(2400)
+
+        // Teardown
+        if (!cancelled) { setShowOk(false); setShowPitch(false); setPitchTyping(false) }
         await w(500)
+        if (!cancelled) { setRows(0); setSelRow(-1); setTyping(false) }
+        await w(400)
       }
     }
-
     loop()
     return () => { cancelled = true }
   }, [getPos])
@@ -291,535 +225,239 @@ export default function AnimatedDashboard() {
   const wrapH = Math.round(INNER_H * scale)
 
   return (
-    /* ── ATMOSPHERIC OUTER WRAPPER ── */
-    <div
-      ref={wrapperRef}
-      style={{
-        width: '100%',
-        height: `${wrapH}px`,
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: '10px',
-        border: '1px solid rgba(255,255,255,0.08)',
-        boxShadow:
-          '0 0 0 1px rgba(255,255,255,0.03), ' +
-          '0 60px 140px rgba(0,0,0,0.92), ' +
-          '0 0 80px rgba(90,13,12,0.05)',
-      }}
-    >
-      {/* Atmospheric background — deep maroon glow, Raycast-style */}
-      <div aria-hidden style={{
-        position: 'absolute', inset: 0, background: C.bg, zIndex: 0,
-      }} />
-      {/* Top-right crimson atmosphere */}
-      <div aria-hidden style={{
-        position: 'absolute',
-        top: '-100px', right: '-80px',
-        width: '55%', height: '120%',
-        background: `radial-gradient(ellipse at 70% 30%, ${C.accentGlow} 0%, rgba(90,13,12,0.2) 40%, transparent 68%)`,
-        pointerEvents: 'none', zIndex: 0,
-      }} />
-      {/* Subtle vignette */}
-      <div aria-hidden style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.6) 100%)',
-        pointerEvents: 'none', zIndex: 1,
-      }} />
+    <div ref={wrapperRef} style={{ width: '100%', height: `${wrapH}px`, position: 'relative', overflow: 'hidden', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.09)', boxShadow: '0 0 0 1px rgba(255,255,255,0.03), 0 60px 140px rgba(0,0,0,0.94)' }}>
 
-      {/* ── FIXED-WIDTH INNER — gets scaled to fill wrapper ── */}
-      <div
-        ref={innerRef}
-        style={{
-          position: 'absolute', top: 0, left: 0,
-          width: INNER_W, height: INNER_H,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          zIndex: 2,
-        }}
-      >
-        {/* Cursor lives at top level — floats over sidebar + main */}
-        <Cursor x={cursorX} y={cursorY} clicking={clicking} />
+      {/* Atmospheric background */}
+      <div aria-hidden style={{ position: 'absolute', inset: 0, background: C.bg, zIndex: 0 }} />
+      {/* Bottom-left crimson glow — like Raycast screenshot */}
+      <div aria-hidden style={{ position: 'absolute', bottom: '-80px', left: '-60px', width: '65%', height: '130%', background: 'radial-gradient(ellipse at 15% 85%, rgba(90,13,12,0.8) 0%, rgba(55,8,8,0.3) 38%, transparent 62%)', pointerEvents: 'none', zIndex: 0 }} />
+      {/* Top right subtle hint */}
+      <div aria-hidden style={{ position: 'absolute', top: '-30px', right: '-30px', width: '28%', height: '55%', background: 'radial-gradient(ellipse, rgba(90,13,12,0.1) 0%, transparent 65%)', pointerEvents: 'none', zIndex: 0 }} />
 
-        {/* ── BROWSER CHROME ── */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          height: '30px', padding: '0 14px',
-          background: 'rgba(0,0,0,0.65)',
-          borderBottom: `1px solid ${C.borderDim}`,
-          backdropFilter: 'blur(8px)',
-        }}>
-          {[0.18, 0.11, 0.07].map((o, i) => (
-            <div key={i} style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              background: `rgba(255,255,255,${o})`,
-            }} />
-          ))}
+      {/* INNER SCALED CANVAS */}
+      <div ref={innerRef} style={{ position: 'absolute', top: 0, left: 0, width: INNER_W, height: INNER_H, transform: `scale(${scale})`, transformOrigin: 'top left', zIndex: 2 }}>
+
+        <Cursor x={cx} y={cy} clicking={clicking} />
+
+        {/* Browser chrome */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', height: '30px', padding: '0 14px', background: 'rgba(0,0,0,0.72)', borderBottom: `1px solid ${C.borderDim}` }}>
+          {[0.22, 0.13, 0.07].map((o, i) => <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: `rgba(255,255,255,${o})` }} />)}
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '2px 14px',
-              background: 'rgba(255,255,255,0.04)',
-              border: `1px solid ${C.borderDim}`,
-              borderRadius: '4px',
-              fontSize: '10px', color: C.dim,
-              fontFamily: 'JetBrains Mono, monospace',
-            }}>
-              <span style={{
-                width: '5px', height: '5px', borderRadius: '50%',
-                background: C.accent, display: 'inline-block',
-                animation: 'accent-pulse 2.5s ease-in-out infinite',
-              }} />
-              app.freelanceos.io
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '2px 14px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${C.borderDim}`, borderRadius: '4px', fontSize: '10px', color: C.dim, fontFamily: 'JetBrains Mono, monospace' }}>
+              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.accent, display: 'inline-block' }} />
+              app.freelanceos.io/discover
             </div>
           </div>
         </div>
 
-        {/* ── DASHBOARD GRID ── */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '164px 1fr',
-          height: `${INNER_H - 30}px`,
-        }}>
+        {/* Main canvas */}
+        <div style={{ position: 'relative', height: `${INNER_H - 30}px` }}>
 
-          {/* ─────── SIDEBAR ─────── */}
-          <aside style={{
-            background: 'rgba(0,0,0,0.5)',
-            borderRight: `1px solid ${C.borderDim}`,
-            display: 'flex', flexDirection: 'column',
-            padding: '14px 8px', gap: '1px',
-            backdropFilter: 'blur(10px)',
+          {/* ── COMMAND PALETTE PANEL ── */}
+          <div style={{
+            position: 'absolute',
+            left: '140px', top: '44px',
+            width: '600px',
+            background: C.panel,
+            border: `1px solid ${C.border}`,
+            borderRadius: '10px',
+            backdropFilter: 'blur(40px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+            boxShadow: '0 48px 96px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.05)',
+            overflow: 'hidden',
           }}>
-            {/* Logo */}
-            <div style={{
-              padding: '2px 8px 13px',
-              fontSize: '12px', fontWeight: 800,
-              letterSpacing: '-0.04em', color: C.white,
-            }}>
-              Freelance<span style={{ color: C.accent }}>OS</span>
-            </div>
-
-            {/* AI Status */}
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '5px',
-              padding: '5px 8px', marginBottom: '9px',
-              background: C.accentDim,
-              border: `1px solid rgba(90,13,12,0.25)`,
-              borderRadius: '4px',
-            }}>
-              <span style={{
-                width: '5px', height: '5px', borderRadius: '50%',
-                background: C.accent, display: 'inline-block', flexShrink: 0,
-                animation: 'accent-pulse 2s ease-in-out infinite',
-              }} />
-              <span style={{
-                fontSize: '9px', fontWeight: 700,
-                color: 'rgba(200,80,75,1)',
-                letterSpacing: '0.09em', textTransform: 'uppercase',
-              }}>
-                AI Active
+            {/* Search bar */}
+            <div ref={searchRef} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 18px', height: '54px', borderBottom: `1px solid ${C.borderDim}` }}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M10 3L5 8L10 13" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ flex: 1, fontSize: '15px', fontWeight: 400, color: C.white, letterSpacing: '-0.01em', minHeight: '20px', display: 'block' }}>
+                <Typewriter active={typing} text={SEARCH_TEXT} />
               </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', background: 'rgba(255,255,255,0.06)', border: `1px solid ${C.border}`, borderRadius: '5px', fontSize: '11px', color: C.mid, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                All Clients
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke={C.muted} strokeWidth="1.2" strokeLinecap="round"/></svg>
+              </div>
             </div>
 
-            {/* Nav section label */}
-            <div style={{
-              padding: '0 8px 4px',
-              fontSize: '8.5px', fontWeight: 600,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: C.dim,
-            }}>
-              Workspace
+            {/* Section label */}
+            <div style={{ padding: '8px 18px 3px', fontSize: '9px', fontWeight: 700, color: C.dim, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              Clients
             </div>
 
-            {/* Nav items */}
-            {NAV_ITEMS.map(item => {
-              const active = item === activeNav
+            {/* Results */}
+            {CLIENTS.map((cl, idx) => {
+              const visible = idx < rows
+              const selected = selRow === idx
               return (
                 <div
-                  key={item}
-                  ref={item === 'Discover' ? discoverRef : undefined}
+                  key={cl.company}
+                  ref={idx === 1 ? row1Ref : undefined}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    padding: '7px 8px',
-                    borderRadius: '4px',
-                    borderLeft: `2px solid ${active ? C.accent : 'transparent'}`,
-                    paddingLeft: active ? '9px' : '8px',
-                    background: active
-                      ? 'linear-gradient(90deg, rgba(90,13,12,0.14) 0%, rgba(90,13,12,0.04) 100%)'
-                      : 'transparent',
-                    transition: 'all 0.22s ease',
+                    display: 'flex', alignItems: 'center', gap: '11px',
+                    padding: '8px 18px',
+                    background: selected ? 'rgba(255,255,255,0.07)' : 'transparent',
+                    borderLeft: `2px solid ${selected ? C.accent : 'transparent'}`,
+                    paddingLeft: selected ? '16px' : '18px',
+                    opacity: visible ? 1 : 0,
+                    transform: visible ? 'translateY(0)' : 'translateY(6px)',
+                    transition: `opacity 0.24s ease ${idx * 0.06}s, transform 0.24s ease ${idx * 0.06}s, background 0.15s`,
                     cursor: 'default',
                   }}
                 >
-                  <span style={{
-                    width: '4px', height: '4px', borderRadius: '1px',
-                    background: active ? C.accent : 'rgba(255,255,255,0.14)',
-                    flexShrink: 0, transition: 'background 0.22s ease',
-                  }} />
-                  <span style={{
-                    fontSize: '12px',
-                    fontWeight: active ? 600 : 400,
-                    color: active ? C.white : C.muted,
-                    transition: 'all 0.22s ease',
-                  }}>
-                    {item}
-                  </span>
-                  {item === 'Pitches' && (
-                    <span style={{
-                      marginLeft: 'auto', fontSize: '9px', fontWeight: 700,
-                      color: 'rgba(200,80,75,1)',
-                      background: C.accentDim,
-                      padding: '1px 5px', borderRadius: '3px',
-                    }}>23</span>
-                  )}
+                  <div style={{ width: '26px', height: '26px', borderRadius: '5px', background: 'rgba(255,255,255,0.08)', border: `1px solid ${C.borderDim}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5px', fontWeight: 800, color: C.mid, flexShrink: 0 }}>
+                    {cl.abbr}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: selected ? 500 : 400, color: selected ? C.white : 'rgba(255,255,255,0.72)', letterSpacing: '-0.01em' }}>{cl.company}</div>
+                    <div style={{ fontSize: '10px', color: C.dim, marginTop: '1px' }}>{cl.cat}</div>
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: C.muted }}>{cl.score}%</div>
                 </div>
               )
             })}
 
-            {/* Bottom stat */}
-            <div style={{
-              marginTop: 'auto',
-              padding: '12px 8px 4px',
-              borderTop: `1px solid ${C.borderDim}`,
-            }}>
-              <div style={{
-                fontSize: '8.5px', color: C.dim,
-                letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '3px',
-              }}>
-                Monthly Revenue
+            {/* Bottom bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px', height: '38px', borderTop: `1px solid ${C.borderDim}`, marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="9" height="9" viewBox="0 0 16 16" fill={C.accent}><path d="M8 1L10.2 6.8L16 8L10.2 9.2L8 15L5.8 9.2L0 8L5.8 6.8L8 1Z"/></svg>
+                <span style={{ fontSize: '10px', color: C.muted, fontWeight: 500 }}>FreelanceOS</span>
+                <span style={{ fontSize: '10px', color: C.dim }}>· {rows} clients found</span>
               </div>
-              <div style={{
-                fontSize: '20px', fontWeight: 700,
-                color: C.white, letterSpacing: '-0.04em', lineHeight: 1,
-              }}>
-                $48K
-              </div>
-              <div style={{ fontSize: '9px', color: C.mid, marginTop: '3px' }}>
-                ↑ 32%
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '10px', color: C.dim, marginRight: '3px' }}>Actions</span>
+                <Kbd s="⌘" /><Kbd s="K" />
               </div>
             </div>
-          </aside>
+          </div>
 
-          {/* ─────── MAIN ─────── */}
-          <main style={{
-            position: 'relative',
-            background: 'rgba(5,5,8,0.7)',
-            backdropFilter: 'blur(10px)',
+          {/* ── CONTEXT MENU ── */}
+          <div style={{
+            position: 'absolute',
+            left: '516px', top: '166px',
+            width: '232px',
+            background: C.panelLight,
+            border: `1px solid rgba(255,255,255,0.14)`,
+            borderRadius: '8px',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            boxShadow: '0 28px 64px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.07)',
             overflow: 'hidden',
+            opacity: showCtx ? 1 : 0,
+            transform: showCtx ? 'scale(1) translateY(0)' : 'scale(0.94) translateY(-5px)',
+            transformOrigin: 'top left',
+            transition: 'opacity 0.18s ease, transform 0.18s ease',
+            pointerEvents: showCtx ? 'auto' : 'none',
           }}>
-
-            {/* Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 18px',
-              borderBottom: `1px solid ${C.borderDim}`,
-            }}>
-              <div>
-                <div style={{
-                  fontSize: '13px', fontWeight: 600,
-                  color: C.white, letterSpacing: '-0.025em',
-                }}>
-                  {activeNav}
-                </div>
-                <div style={{ fontSize: '10px', color: C.dim, marginTop: '1px' }}>
-                  {activeNav === 'Discover'
-                    ? '1,284 potential clients · AI-filtered'
-                    : 'Freelance automation dashboard'}
-                </div>
-              </div>
-
-              {/* Generate Pitch — cursor target */}
+            {CTX_ACTIONS.map((action, idx) => (
               <div
-                ref={generateRef}
+                key={action.label}
+                ref={action.ref ? genRef : undefined}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '7px 14px',
-                  background: C.accent,
-                  borderRadius: '4px',
-                  fontSize: '10.5px', fontWeight: 700,
-                  letterSpacing: '0.07em', textTransform: 'uppercase',
-                  color: C.white, cursor: 'default',
-                  boxShadow: '0 0 20px rgba(90,13,12,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '9px 12px',
+                  background: idx === 0 ? 'rgba(255,255,255,0.07)' : 'transparent',
+                  borderBottom: idx < CTX_ACTIONS.length - 1 ? `1px solid rgba(255,255,255,0.05)` : 'none',
+                  cursor: 'default',
                 }}
               >
-                <svg width="9" height="9" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 1L10.2 6.8L16 8L10.2 9.2L8 15L5.8 9.2L0 8L5.8 6.8L8 1Z"/>
-                </svg>
-                Generate Pitch
-              </div>
-            </div>
-
-            {/* Metrics row — no sparklines, clean monochromatic */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
-              borderBottom: `1px solid ${C.borderDim}`,
-            }}>
-              {[
-                { label: 'Clients Found', value: '1,284', delta: '+47 today' },
-                { label: 'Pitches Sent',  value: '3,841', delta: '+12 today' },
-                { label: 'Active Deals',  value: '24',    delta: '$72K value' },
-              ].map((m, i) => (
-                <div key={m.label} style={{
-                  padding: '12px 18px',
-                  borderRight: i < 2 ? `1px solid ${C.borderDim}` : 'none',
-                }}>
-                  <div style={{
-                    fontSize: '9px', color: C.dim,
-                    letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '5px',
-                  }}>
-                    {m.label}
-                  </div>
-                  <div style={{
-                    fontSize: '22px', fontWeight: 700,
-                    color: C.white, letterSpacing: '-0.04em', lineHeight: 1,
-                  }}>
-                    {m.value}
-                  </div>
-                  <div style={{ fontSize: '10px', color: C.muted, marginTop: '4px' }}>
-                    {m.delta}
-                  </div>
+                <span style={{ fontSize: '12px', color: idx === 0 ? C.white : C.mid, fontWeight: idx === 0 ? 500 : 400 }}>
+                  {action.label}
+                </span>
+                <div style={{ display: 'flex', gap: '3px' }}>
+                  {action.keys.map(k => <Kbd key={k} s={k} />)}
                 </div>
-              ))}
-            </div>
-
-            {/* Table header */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '20px 1fr 76px 52px 70px',
-              gap: '12px', padding: '8px 18px',
-              borderBottom: `1px solid ${C.borderDim}`,
-              fontSize: '8.5px', color: C.dim,
-              letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600,
-            }}>
-              <span />
-              <span>Company</span>
-              <span>Industry</span>
-              <span>Score</span>
-              <span style={{ textAlign: 'right' }}>Status</span>
-            </div>
-
-            {/* Table rows */}
-            {TABLE_ROWS.map((row, i) => {
-              const visible = i < visibleRows
-              const st = STATUS[row.status]
-              return (
-                <div key={row.company} style={{
-                  display: 'grid',
-                  gridTemplateColumns: '20px 1fr 76px 52px 70px',
-                  gap: '12px', alignItems: 'center',
-                  padding: '8px 18px',
-                  borderBottom: `1px solid ${C.borderDim}`,
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? 'translateY(0)' : 'translateY(6px)',
-                  transition: `opacity 0.28s ease ${i * 0.05}s, transform 0.28s ease ${i * 0.05}s`,
-                }}>
-                  {/* Abbr avatar — monochromatic only */}
-                  <div style={{
-                    width: '20px', height: '20px', borderRadius: '3px',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: `1px solid ${C.borderDim}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '8px', fontWeight: 800, color: C.mid,
-                    letterSpacing: '-0.02em', flexShrink: 0,
-                  }}>
-                    {row.abbr}
-                  </div>
-                  <span style={{ fontSize: '12px', color: C.white, fontWeight: 500 }}>
-                    {row.company}
-                  </span>
-                  <span style={{
-                    fontSize: '10px', color: C.muted,
-                    background: C.surface, padding: '2px 6px', borderRadius: '3px',
-                    border: `1px solid ${C.borderDim}`, justifySelf: 'start',
-                  }}>
-                    {row.industry}
-                  </span>
-                  <span style={{ fontSize: '11px', color: C.mid, fontWeight: 600 }}>
-                    {row.score}%
-                  </span>
-                  <span style={{
-                    padding: '2px 7px', borderRadius: '3px',
-                    fontSize: '9px', fontWeight: 700,
-                    letterSpacing: '0.07em', textTransform: 'uppercase',
-                    background: st.bg, color: st.txt, textAlign: 'center',
-                    justifySelf: 'end', border: '1px solid rgba(255,255,255,0.06)',
-                  }}>
-                    {row.status}
-                  </span>
-                </div>
-              )
-            })}
-
-            {/* New row after send */}
-            {newRow && (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '20px 1fr 76px 52px 70px',
-                gap: '12px', alignItems: 'center',
-                padding: '8px 18px',
-                borderBottom: `1px solid ${C.borderDim}`,
-                background: 'rgba(90,13,12,0.06)',
-              }}>
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '3px',
-                  background: C.accentDim,
-                  border: `1px solid rgba(90,13,12,0.25)`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '8px', fontWeight: 800, color: 'rgba(200,80,75,0.9)',
-                }}>AD</div>
-                <span style={{ fontSize: '12px', color: C.white, fontWeight: 500 }}>{COMPANY}</span>
-                <span style={{ fontSize: '10px', color: C.muted, background: C.surface, padding: '2px 6px', borderRadius: '3px', border: `1px solid ${C.borderDim}`, justifySelf: 'start' }}>SaaS</span>
-                <span style={{ fontSize: '11px', color: C.mid, fontWeight: 600 }}>94%</span>
-                <span style={{ padding: '2px 7px', borderRadius: '3px', fontSize: '9px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', background: 'rgba(90,13,12,0.22)', color: 'rgba(200,80,75,1)', textAlign: 'center', justifySelf: 'end', border: '1px solid rgba(90,13,12,0.2)' }}>Sent</span>
               </div>
-            )}
+            ))}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '3px 0' }} />
+            <div style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke={C.dim} strokeWidth="1.5"/><path d="M11 11L14 14" stroke={C.dim} strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <span style={{ fontSize: '11px', color: C.dim }}>Search actions...</span>
+            </div>
+          </div>
 
-            {/* ── SLIDE-IN PITCH PANEL (glassmorphism) ── */}
+          {/* ── PITCH PANEL (overlays command palette) ── */}
+          {showPitch && (
             <div style={{
-              position: 'absolute', top: 0, right: 0, bottom: 0, width: '268px',
-              background: 'rgba(4,4,8,0.88)',
-              backdropFilter: 'blur(24px) saturate(140%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(140%)',
-              borderLeft: `1px solid ${C.border}`,
-              transform: panelOpen ? 'translateX(0)' : 'translateX(100%)',
-              transition: 'transform 0.44s cubic-bezier(0.33, 1, 0.68, 1)',
-              display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px',
+              position: 'absolute', left: '140px', top: '44px', width: '600px',
+              background: C.panel,
+              border: `1px solid ${C.border}`,
+              borderRadius: '10px',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              boxShadow: '0 48px 96px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.05)',
+              animation: 'pitch-in 0.3s ease forwards',
+              overflow: 'hidden',
             }}>
               {/* Panel header */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '3px' }}>
-                  <svg width="8" height="8" viewBox="0 0 16 16" fill={C.accent}>
-                    <path d="M8 1L10.2 6.8L16 8L10.2 9.2L8 15L5.8 9.2L0 8L5.8 6.8L8 1Z"/>
-                  </svg>
-                  <span style={{
-                    fontSize: '9px', fontWeight: 700, color: 'rgba(200,80,75,1)',
-                    letterSpacing: '0.1em', textTransform: 'uppercase',
-                  }}>
-                    AI Pitch Generator
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 18px', borderBottom: `1px solid ${C.borderDim}` }}>
+                <svg width="9" height="9" viewBox="0 0 16 16" fill={C.accent}><path d="M8 1L10.2 6.8L16 8L10.2 9.2L8 15L5.8 9.2L0 8L5.8 6.8L8 1Z"/></svg>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: C.white, letterSpacing: '-0.01em' }}>
+                  Pitch for Bright Studio
+                </span>
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 700, color: C.accentTxt, letterSpacing: '0.08em', textTransform: 'uppercase' }}>94% match</span>
+                  <div style={{ width: '48px', height: '2px', background: 'rgba(255,255,255,0.08)', borderRadius: '1px', overflow: 'hidden' }}>
+                    <div style={{ width: '94%', height: '100%', background: C.accent }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Pitch text */}
+              <div style={{ padding: '18px 18px 12px', minHeight: '80px' }}>
+                <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.78, letterSpacing: '-0.005em' }}>
+                  <Typewriter active={pitchTyping} text={PITCH_TEXT} speed={28} />
+                </div>
+              </div>
+
+              {/* Channels */}
+              <div style={{ display: 'flex', gap: '6px', padding: '0 18px 14px' }}>
+                {['Cold Email', 'LinkedIn DM', 'Sequence'].map(ch => (
+                  <span key={ch} style={{ padding: '3px 8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${C.borderDim}`, borderRadius: '4px', fontSize: '10px', color: C.muted }}>
+                    {ch}
                   </span>
-                </div>
-                <div style={{ fontSize: '10px', color: C.dim }}>
-                  Generating personalized outreach
-                </div>
+                ))}
               </div>
 
-              {/* Company field — cursor target */}
-              <div>
-                <div style={{
-                  fontSize: '9px', color: C.dim,
-                  letterSpacing: '0.1em', textTransform: 'uppercase',
-                  marginBottom: '5px', fontWeight: 600,
-                }}>
-                  Company
-                </div>
-                <div
-                  ref={inputRef}
-                  style={{
-                    padding: '7px 10px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${typing ? 'rgba(90,13,12,0.4)' : C.border}`,
-                    borderRadius: '4px',
-                    fontSize: '12px', color: C.white,
-                    minHeight: '30px',
-                    transition: 'border-color 0.2s ease',
-                  }}
-                >
-                  <Typewriter active={typing} text={COMPANY} />
-                </div>
+              {/* Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px 14px', borderTop: `1px solid ${C.borderDim}` }}>
+                <button ref={sendRef} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: C.accent, borderRadius: '4px', border: 'none', fontSize: '11px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: C.white, cursor: 'default', boxShadow: '0 0 22px rgba(90,13,12,0.35)', flexShrink: 0 }}>
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M1 1l14 7L1 15V9l10-1L1 7V1z"/></svg>
+                  Send Pitch
+                </button>
+                <button style={{ padding: '8px 12px', background: 'transparent', border: `1px solid ${C.borderDim}`, borderRadius: '4px', fontSize: '11px', fontWeight: 500, color: C.muted, cursor: 'default' }}>
+                  Edit Draft
+                </button>
+                <button style={{ padding: '8px 12px', background: 'transparent', border: `1px solid ${C.borderDim}`, borderRadius: '4px', fontSize: '11px', fontWeight: 500, color: C.muted, cursor: 'default', marginLeft: 'auto' }}>
+                  Regenerate
+                </button>
               </div>
-
-              {/* Pitch type */}
-              <div>
-                <div style={{
-                  fontSize: '9px', color: C.dim,
-                  letterSpacing: '0.1em', textTransform: 'uppercase',
-                  marginBottom: '5px', fontWeight: 600,
-                }}>
-                  Pitch Type
-                </div>
-                <div style={{
-                  padding: '7px 10px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${C.border}`,
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  color: typing ? C.white : C.dim,
-                  transition: 'color 0.3s ease',
-                }}>
-                  {typing ? 'Cold Email' : '—'}
-                </div>
-              </div>
-
-              {/* Score bar */}
-              <ScoreBar fill={scoreFill} />
-
-              {/* Preview fragment */}
-              <div style={{
-                padding: '9px',
-                background: 'rgba(255,255,255,0.025)',
-                border: `1px solid ${C.borderDim}`,
-                borderRadius: '4px',
-                fontSize: '10px', color: C.muted, lineHeight: 1.65,
-                fontStyle: 'italic',
-                opacity: scoreFill ? 1 : 0,
-                transition: 'opacity 0.5s ease',
-              }}>
-                &ldquo;Hi, I noticed Apex Digital is scaling rapidly — I help companies like yours...&rdquo;
-              </div>
-
-              {/* Send — cursor target */}
-              <button
-                ref={sendRef}
-                style={{
-                  marginTop: 'auto', padding: '10px',
-                  background: C.accent,
-                  borderRadius: '4px', border: 'none',
-                  fontSize: '11px', fontWeight: 700,
-                  letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: C.white, cursor: 'default',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
-                  boxShadow: '0 0 20px rgba(90,13,12,0.3)',
-                  transition: 'all 0.12s ease',
-                }}
-              >
-                <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 1l14 7L1 15V9l10-1L1 7V1z"/>
-                </svg>
-                Send Pitch
-              </button>
             </div>
+          )}
 
-            {/* ── SUCCESS TOAST ── */}
-            <div style={{
-              position: 'absolute', top: '12px',
-              right: panelOpen ? '280px' : '16px',
-              display: 'flex', alignItems: 'center', gap: '7px',
-              padding: '7px 12px',
-              background: 'rgba(255,255,255,0.06)',
-              border: `1px solid ${C.border}`,
-              borderRadius: '4px',
-              backdropFilter: 'blur(12px)',
-              fontSize: '11px', fontWeight: 500, color: C.white,
-              opacity: showSuccess ? 1 : 0,
-              transform: showSuccess ? 'translateY(0)' : 'translateY(-10px)',
-              transition: 'opacity 0.3s ease, transform 0.3s ease, right 0.44s cubic-bezier(0.33,1,0.68,1)',
-              zIndex: 60, pointerEvents: 'none', whiteSpace: 'nowrap',
-            }}>
-              <div style={{
-                width: '5px', height: '5px', borderRadius: '50%',
-                background: C.accent, flexShrink: 0,
-              }} />
-              Pitch sent to {COMPANY}
-            </div>
-          </main>
+          {/* ── SUCCESS TOAST ── */}
+          <div style={{
+            position: 'absolute', top: '14px', right: '16px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '9px 14px',
+            background: 'rgba(255,255,255,0.07)',
+            border: `1px solid ${C.border}`,
+            borderRadius: '6px',
+            backdropFilter: 'blur(20px)',
+            fontSize: '11px', fontWeight: 500, color: C.white,
+            opacity: showOk ? 1 : 0,
+            transform: showOk ? 'translateY(0)' : 'translateY(-12px)',
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
+            pointerEvents: 'none', zIndex: 60, whiteSpace: 'nowrap',
+          }}>
+            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: C.accent, flexShrink: 0 }} />
+            Pitch sent to Bright Studio
+          </div>
         </div>
-
-        {/* Bottom fade */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, height: '50px',
-          background: 'linear-gradient(to top, rgba(5,5,8,0.8) 0%, transparent 100%)',
-          pointerEvents: 'none', zIndex: 3,
-        }} />
       </div>
+
+      {/* Bottom gradient */}
+      <div aria-hidden style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55px', background: 'linear-gradient(to top, rgba(4,4,7,0.88) 0%, transparent 100%)', pointerEvents: 'none', zIndex: 3 }} />
     </div>
   )
 }
