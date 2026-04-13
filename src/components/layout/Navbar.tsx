@@ -111,8 +111,8 @@ export default function Navbar() {
         WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
       }}>
         <div style={{
-          width: '100%', maxWidth: '1160px',
-          margin: '0 auto', padding: '0 28px',
+          width: '100%', maxWidth: '1400px',
+          margin: '0 auto', padding: '0 20px',
           display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', gap: '16px',
         }}>
