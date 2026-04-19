@@ -1,8 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 /* ============================================================
    FREELANCEOS — DESIGN SYSTEM v2.0
@@ -285,6 +284,35 @@ body {
    CSS ANIMATIONS — GPU only, no JS
    ============================================================ */
 
+/* Light trail ambient drift — hero diagonal beams */
+@keyframes trail-drift {
+  0%, 100% { transform: rotate(-38deg) translateY(0px) scaleX(1); opacity: 0.7; }
+  50%       { transform: rotate(-38deg) translateY(-12px) scaleX(1.04); opacity: 1; }
+}
+
+@keyframes trail-drift-r {
+  0%, 100% { transform: rotate(38deg) translateY(0px) scaleX(1); opacity: 0.4; }
+  50%       { transform: rotate(38deg) translateY(10px) scaleX(1.03); opacity: 0.65; }
+}
+
+/* Tab progress bar — fills width 0→100% */
+@keyframes tab-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+/* Light sweep — shimmer across a card border/surface */
+@keyframes light-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* Fade up — generic section entrance */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Marquee — logos row */
 @keyframes marquee {
   0% {
@@ -539,4 +567,205 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   pointer-events: none;
   border-radius: inherit;
+}
+
+/* ============================================================
+   GLASS PANEL — Raycast signature glassmorphism card
+   ============================================================ */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  /* Inset top-edge highlight — Raycast's signature: looks like light
+     catching the top rim of a physical panel */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 4px 32px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel-lg {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 24px 80px rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================
+   GLOW ORB — radial crimson blob dropped behind sections
+   ============================================================ */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(196, 20, 37, 0.22) 0%,
+    rgba(196, 20, 37, 0.08) 40%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  animation: glow-pulse 6s ease-in-out infinite;
+}
+
+.glow-orb-sm {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(196, 20, 37, 0.14) 0%,
+    transparent 65%
+  );
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   LIGHT TRAIL — diagonal crimson beam (hero background)
+   ============================================================ */
+.light-trail {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  /* Core beam */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 20, 37, 0.55) 30%,
+    rgba(230, 40, 55, 0.85) 50%,
+    rgba(196, 20, 37, 0.55) 70%,
+    transparent 100%
+  );
+  filter: blur(3px);
+  border-radius: 9999px;
+}
+
+.light-trail-halo {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(196, 20, 37, 0.12) 30%,
+    rgba(196, 20, 37, 0.22) 50%,
+    rgba(196, 20, 37, 0.12) 70%,
+    transparent 100%
+  );
+  filter: blur(32px);
+  border-radius: 9999px;
+}
+
+/* ============================================================
+   KBD — keyboard shortcut key styling
+   ============================================================ */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.10);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0em;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   SECTION ENTRY — generic scroll-triggered fade-up
+   ============================================================ */
+.section-entry {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.section-entry.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   AVATAR OVERLAP ROW — social proof cluster
+   ============================================================ */
+.avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-stack .avatar-item {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg);
+  margin-left: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  transition: margin-left 0.2s ease;
+}
+
+.avatar-stack .avatar-item:first-child {
+  margin-left: 0;
+}
+
+.avatar-stack:hover .avatar-item {
+  margin-left: -4px;
+}
+
+/* ============================================================
+   PROGRESS TAB BAR — auto-cycling tab indicator
+   ============================================================ */
+.tab-progress-bar {
+  height: 1px;
+  background: var(--color-accent);
+  width: 0%;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px rgba(196, 20, 37, 0.6);
+}
+
+.tab-progress-bar.running {
+  animation: tab-progress var(--tab-duration, 4s) linear forwards;
+}
+
+/* ============================================================
+   SWEEP BORDER — shimmer on card hover
+   ============================================================ */
+.sweep-border {
+  background:
+    linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06) 40%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.06) 60%,
+      transparent
+    ) center / 200% auto;
+  transition: background-position 0.4s ease;
+}
+
+.sweep-border:hover {
+  animation: light-sweep 1.2s ease forwards;
 }

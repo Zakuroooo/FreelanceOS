@@ -1,202 +1,253 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { motion, useMotionValueEvent, useScroll, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Menu } from 'lucide-react'
 
 const NAV_LINKS = [
-  { label: 'Features',     href: '/#features' },
-  { label: 'How It Works', href: '/#how-it-works' },
-  { label: 'Pricing',      href: '/#pricing' },
+  { name: 'Features',     link: '#features' },
+  { name: 'How It Works', link: '#how-it-works' },
+  { name: 'Pricing',      link: '#pricing' },
+  { name: 'FAQ',          link: '#faq' },
 ]
 
 export default function Navbar() {
+  const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const pathname = usePathname()
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 24)
-    window.addEventListener('scroll', fn, { passive: true })
-    return () => window.removeEventListener('scroll', fn)
-  }, [])
-
-  useEffect(() => { setMobileOpen(false) }, [pathname])
+  useMotionValueEvent(scrollY, 'change', (val) => {
+    setScrolled(val > 80)
+  })
 
   return (
-    <>
-      <style>{`
-        /* BULLETPROOF — raw CSS, no Tailwind interference */
-        .fo-right   { display: none; }
-        .fo-burger  { display: flex; }
-        @media (min-width: 768px) {
-          .fo-right  { display: flex; }
-          .fo-burger { display: none; }
-        }
+    <nav
+      style={{
+        position: 'fixed',
+        top: '16px',
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '0 16px',
+        pointerEvents: 'none',
+      }}
+    >
+      {/* Desktop Navbar — Framer Motion animated width */}
+      <motion.div
+        animate={{
+          maxWidth: scrolled ? 860 : 1050,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 200,
+          damping: 30,
+          mass: 0.8,
+        }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: scrolled ? '10px 22px' : '14px 28px',
+          borderRadius: '9999px',
+          background: 'rgba(6, 6, 8, 0.35)',
+          backdropFilter: 'blur(32px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(190%)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 0 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)',
+          pointerEvents: 'auto',
+          transition: 'padding 0.3s ease',
+        }}
+      >
+        {/* Logo */}
+        <Link
+          href="/"
+          style={{
+            fontSize: '16px',
+            fontWeight: 800,
+            letterSpacing: '-0.05em',
+            color: '#F0EEF8',
+            textDecoration: 'none',
+            lineHeight: 1,
+            flexShrink: 0,
+          }}
+        >
+          Freelance<span style={{ color: '#c30101' }}>OS</span>
+        </Link>
 
-        .fo-logo {
-          font-size: 14px;
-          font-weight: 800;
-          letter-spacing: -0.05em;
-          color: #F0EEF8;
-          text-decoration: none;
-          flex-shrink: 0;
-        }
-        .fo-logo em { color: #c30101; font-style: normal; }
-
-        .fo-link {
-          font-size: 13px;
-          font-weight: 400;
-          letter-spacing: 0em;
-          color: rgba(240,238,248,0.38);
-          text-decoration: none;
-          padding: 5px 11px;
-          border-radius: 4px;
-          transition: color 0.14s;
-          white-space: nowrap;
-        }
-        .fo-link:hover { color: rgba(240,238,248,0.85); }
-
-        .fo-sep {
-          width: 1px;
-          height: 16px;
-          background: rgba(255,255,255,0.08);
-          margin: 0 6px;
-          flex-shrink: 0;
-        }
-
-        .fo-login {
-          font-size: 13px;
-          font-weight: 400;
-          letter-spacing: 0em;
-          color: rgba(240,238,248,0.38);
-          text-decoration: none;
-          padding: 5px 10px;
-          transition: color 0.14s;
-          white-space: nowrap;
-        }
-        .fo-login:hover { color: rgba(240,238,248,0.85); }
-
-        .fo-cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 7px 14px;
-          background: #c30101;
-          color: #fff;
-          font-size: 10.5px;
-          font-weight: 700;
-          letter-spacing: 0.09em;
-          text-transform: uppercase;
-          text-decoration: none;
-          border-radius: 4px;
-          transition: opacity 0.14s, transform 0.14s;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-        .fo-cta:hover { opacity: 0.84; transform: translateY(-1px); }
-        .fo-cta svg { flex-shrink: 0; }
-      `}</style>
-
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0,
-        height: '56px', zIndex: 100,
-        display: 'flex', alignItems: 'center',
-        transition: 'background 220ms ease, border-color 220ms ease',
-        background: scrolled ? 'rgba(5,5,7,0.92)' : 'transparent',
-        borderBottom: `1px solid ${scrolled ? 'rgba(255,255,255,0.06)' : 'transparent'}`,
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px)' : 'none',
-      }}>
-        <div style={{
-          width: '100%', maxWidth: '1400px',
-          margin: '0 auto', padding: '0 20px',
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', gap: '16px',
-        }}>
-          {/* Logo — LEFT */}
-          <Link href="/" className="fo-logo">
-            Freelance<em>OS</em>
-          </Link>
-
-          {/* All nav + CTA — RIGHT (desktop only via raw CSS) */}
-          <div className="fo-right" style={{ alignItems: 'center', gap: '0' }}>
-            {NAV_LINKS.map(l => (
-              <Link key={l.href} href={l.href} className="fo-link">{l.label}</Link>
-            ))}
-            <div className="fo-sep" />
-            <Link href="/login" className="fo-login">Log in</Link>
-            <div style={{ width: '8px' }} />
-            <Link href="/signup" className="fo-cta">
-              Get Started
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                <path d="M1.5 7.5L7.5 1.5M7.5 1.5H2.5M7.5 1.5V6.5"
-                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+        {/* Nav Links — Desktop */}
+        <div
+          onMouseLeave={() => setHoveredIdx(null)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+            position: 'relative',
+          }}
+          className="nav-links-desktop"
+        >
+          {NAV_LINKS.map((item, idx) => (
+            <Link
+              key={item.link}
+              href={item.link}
+              onMouseEnter={() => setHoveredIdx(idx)}
+              style={{
+                position: 'relative',
+                padding: '6px 14px',
+                fontSize: '13px',
+                fontWeight: 400,
+                color: hoveredIdx === idx ? 'rgba(240,238,248,0.88)' : 'rgba(240,238,248,0.38)',
+                textDecoration: 'none',
+                letterSpacing: '-0.01em',
+                whiteSpace: 'nowrap',
+                transition: 'color 0.15s ease',
+                borderRadius: '6px',
+              }}
+            >
+              {hoveredIdx === idx && (
+                <motion.span
+                  layoutId="nav-pill"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '6px',
+                    background: 'rgba(255,255,255,0.05)',
+                  }}
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+                />
+              )}
+              <span style={{ position: 'relative', zIndex: 1 }}>{item.name}</span>
             </Link>
-          </div>
-
-          {/* Hamburger — mobile only (raw CSS) */}
-          <button
-            className="fo-burger"
-            onClick={() => setMobileOpen(v => !v)}
-            style={{
-              alignItems: 'center', justifyContent: 'center',
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: '#F0EEF8', padding: '4px', lineHeight: 0,
-            }}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          ))}
         </div>
-      </header>
 
-      {/* Mobile dropdown */}
+        {/* CTA Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }} className="nav-cta-desktop">
+          <Link
+            href="/login"
+            style={{
+              fontSize: '13px',
+              fontWeight: 400,
+              color: 'rgba(240,238,248,0.38)',
+              textDecoration: 'none',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              transition: 'color 0.15s, background 0.15s',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'rgba(240,238,248,0.88)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'rgba(240,238,248,0.38)'; e.currentTarget.style.background = 'transparent' }}
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '6px 14px',
+              background: '#c30101',
+              color: 'white',
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase' as const,
+              textDecoration: 'none',
+              borderRadius: '4px',
+              transition: 'all 0.15s',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(195,1,1,0.35)' }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none' }}
+          >
+            Get Started
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+              <path d="M1.5 7.5L7.5 1.5M7.5 1.5H2.5M7.5 1.5V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </div>
+
+        {/* Mobile Hamburger */}
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="nav-hamburger"
+          style={{
+            display: 'none',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#F0EEF8',
+            padding: '4px',
+          }}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 12h16"/><path d="M4 6h16"/><path d="M4 18h16"/></svg>
+          )}
+        </button>
+      </motion.div>
+
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
-            exit={{ opacity: 0, y: -8, transition: { duration: 0.12 } }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
             style={{
-              position: 'fixed', top: '56px', left: 0, right: 0,
-              zIndex: 99, background: 'rgba(5,5,7,0.97)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(20px)', padding: '10px 28px 24px',
+              position: 'absolute',
+              top: '100%',
+              left: 16,
+              right: 16,
+              marginTop: '8px',
+              borderRadius: '12px',
+              background: 'rgba(6,6,8,0.97)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              backdropFilter: 'blur(20px)',
+              padding: '16px 20px',
+              boxShadow: '0 16px 48px rgba(0,0,0,0.65)',
+              pointerEvents: 'auto',
             }}
+            className="nav-mobile-menu"
           >
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {NAV_LINKS.map(l => (
-                <Link key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
-                  style={{
-                    fontSize: '15px', fontWeight: 400, color: 'rgba(240,238,248,0.5)',
-                    textDecoration: 'none', padding: '12px 0',
-                    borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  }}>
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
-              <Link href="/login" onClick={() => setMobileOpen(false)}
-                style={{ fontSize: '13px', fontWeight: 400, color: 'rgba(240,238,248,0.45)',
-                  textDecoration: 'none', textAlign: 'center', padding: '10px' }}>
-                Log in
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.link}
+                href={item.link}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '10px 0',
+                  fontSize: '14px',
+                  color: 'rgba(240,238,248,0.45)',
+                  textDecoration: 'none',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'rgba(240,238,248,0.88)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(240,238,248,0.45)' }}
+              >
+                {item.name}
               </Link>
-              <Link href="/signup" onClick={() => setMobileOpen(false)}
-                style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.09em',
-                  textTransform: 'uppercase', color: '#fff', background: '#c30101',
-                  textDecoration: 'none', padding: '13px', borderRadius: '4px',
-                  textAlign: 'center', display: 'block' }}>
-                Get Started
-              </Link>
-            </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .nav-links-desktop { display: none !important; }
+          .nav-cta-desktop { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+        }
+      `}</style>
+    </nav>
   )
 }

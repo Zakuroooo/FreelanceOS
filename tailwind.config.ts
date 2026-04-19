@@ -128,11 +128,15 @@ const config: Config = {
         'gradient-noise':  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\")",
       },
       boxShadow: {
-        'card':     '0 1px 2px rgba(0,0,0,0.5)',
-        'card-lg':  '0 4px 32px rgba(0,0,0,0.6)',
-        'red':      '0 0 30px rgba(232,39,31,0.12)',
-        'red-sm':   '0 0 12px rgba(232,39,31,0.18)',
-        'inner-sm': 'inset 0 1px 0 rgba(255,255,255,0.04)',
+        'card':          '0 1px 2px rgba(0,0,0,0.5)',
+        'card-lg':       '0 4px 32px rgba(0,0,0,0.6)',
+        'red':           '0 0 30px rgba(232,39,31,0.12)',
+        'red-sm':        '0 0 12px rgba(232,39,31,0.18)',
+        'inner-sm':      'inset 0 1px 0 rgba(255,255,255,0.04)',
+        /* Raycast-style new tokens */
+        'glass':         'inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 32px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)',
+        'glow-red-lg':   '0 0 80px rgba(196,20,37,0.18), 0 0 160px rgba(196,20,37,0.08)',
+        'panel-inset':   'inset 0 1px 0 rgba(255,255,255,0.07)',
       },
       screens: {
         'xs': '375px',

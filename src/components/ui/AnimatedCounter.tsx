@@ -8,6 +8,7 @@ interface AnimatedCounterProps {
   suffix?: string
   prefix?: string
   duration?: number
+  decimals?: number
   className?: string
   style?: React.CSSProperties
 }
@@ -17,6 +18,7 @@ export default function AnimatedCounter({
   suffix = '',
   prefix = '',
   duration = 2000,
+  decimals = 0,
   className = '',
   style,
 }: AnimatedCounterProps) {
@@ -39,7 +41,8 @@ export default function AnimatedCounter({
       const elapsed = now - startTime
       const progress = Math.min(elapsed / duration, 1)
       const easedProgress = easeOutQuart(progress)
-      setCount(Math.round(easedProgress * target))
+      const currentVal = easedProgress * target
+      setCount(decimals === 0 ? Math.round(currentVal) : currentVal)
       if (progress < 1) {
         requestAnimationFrame(tick)
       } else {
@@ -51,10 +54,10 @@ export default function AnimatedCounter({
   }, [isInView, target, duration])
 
   return (
-    <span ref={ref} className={className} style={style}>
-      {prefix}
-      {count.toLocaleString()}
-      {suffix}
+    <span ref={ref} className={className} style={{ fontVariantNumeric: 'tabular-nums', ...style }}>
+      {prefix && <span style={{ opacity: 0.5, fontSize: '0.85em', fontWeight: 600, WebkitTextFillColor: 'initial', color: '#FFF' }}>{prefix}</span>}
+      {count.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}
+      {suffix && <span style={{ opacity: 0.5, fontSize: '0.85em', fontWeight: 600, WebkitTextFillColor: 'initial', color: '#FFF' }}>{suffix}</span>}
     </span>
   )
 }
