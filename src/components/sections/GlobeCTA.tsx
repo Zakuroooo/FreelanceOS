@@ -85,63 +85,6 @@ export default function GlobalReach() {
             FreelanceOS scans platforms globally — surface high-fit leads from New York to Singapore, and pitch them automatically.
           </p>
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Link
-              href="/signup"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '13px 24px',
-                background: '#C41425',
-                color: '#fff',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                boxShadow: '0 0 24px rgba(196,20,37,0.28), 0 1px 2px rgba(0,0,0,0.4)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow = '0 0 40px rgba(196,20,37,0.45), 0 4px 16px rgba(0,0,0,0.4)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 0 24px rgba(196,20,37,0.28), 0 1px 2px rgba(0,0,0,0.4)'
-              }}
-            >
-              Get Started Free
-            </Link>
-            <Link
-              href="#how-it-works"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: '13px 24px',
-                background: 'transparent',
-                color: 'rgba(255,255,255,0.45)',
-                fontSize: '14px',
-                fontWeight: 500,
-                textDecoration: 'none',
-                borderRadius: '4px',
-                border: '1px solid rgba(255,255,255,0.08)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'
-                e.currentTarget.style.color = '#FAFAFA'
-                e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                e.currentTarget.style.color = 'rgba(255,255,255,0.45)'
-                e.currentTarget.style.background = 'transparent'
-              }}
-            >
-              Learn More
-            </Link>
-          </div>
         </motion.div>
 
         {/* Right: World Map */}

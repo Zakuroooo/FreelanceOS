@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-
+import Logo from '@/components/ui/Logo'
 const NAV_LINKS = [
   { name: 'Features',     link: '#features' },
   { name: 'How It Works', link: '#how-it-works' },
@@ -75,7 +75,7 @@ export default function Navbar() {
             flexShrink: 0,
           }}
         >
-          Freelance<span style={{ color: '#c30101' }}>OS</span>
+          <Logo size="md" />
         </Link>
 
         {/* Nav Links — Desktop */}

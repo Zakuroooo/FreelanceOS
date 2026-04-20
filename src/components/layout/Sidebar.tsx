@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Logo from '@/components/ui/Logo'
 import {
   LayoutDashboard,
   Search,
@@ -57,8 +58,7 @@ export default function Sidebar() {
             letterSpacing: '-0.02em',
           }}
         >
-          Freelance
-          <span style={{ color: 'var(--color-accent)' }}>OS</span>
+          <Logo size="sm" />
         </Link>
       </div>
 
