@@ -84,7 +84,7 @@ export default function Footer() {
           {/* Column 1: Brand & Copyright */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
-                <Logo size="sm" />
+                <Logo size="sm" showTagline={true} />
             </div>
             
             <p style={{

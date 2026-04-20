@@ -3,63 +3,102 @@
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg'
   showWordmark?: boolean
+  showTagline?: boolean
 }
 
-export default function Logo({ size = 'md', showWordmark = true }: LogoProps) {
-  const scale = size === 'sm' ? 0.7 : size === 'lg' ? 1.3 : 1
-  const iconW = Math.round(44 * scale)
-  const iconH = Math.round(38 * scale)
+export default function Logo({ 
+  size = 'md', 
+  showWordmark = true,
+  showTagline = false
+}: LogoProps) {
+  const scale = size === 'sm' ? 0.75 : size === 'lg' ? 1.3 : 1
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: `${Math.round(10 * scale)}px` }}>
-      {/* Signal arc SVG mark */}
+    <div style={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      gap: `${Math.round(12 * scale)}px` 
+    }}>
+      {/* Signal arc SVG mark — wide elegant spread */}
       <svg
-        width={iconW}
-        height={iconH}
-        viewBox="0 0 44 38"
+        width={Math.round(40 * scale)}
+        height={Math.round(32 * scale)}
+        viewBox="0 0 40 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Outer arc — faintest */}
+        {/* Outer arc — widest, most faded */}
         <path
-          d="M2 36 A30 30 0 0 1 42 36"
-          stroke="rgba(196,20,37,0.28)"
-          strokeWidth="2.2"
+          d="M1 31 A27 27 0 0 1 39 31"
+          stroke="rgba(196,20,37,0.22)"
+          strokeWidth="1.8"
           strokeLinecap="round"
         />
         {/* Middle arc */}
         <path
-          d="M8 27 A20 20 0 0 1 36 27"
-          stroke="rgba(196,20,37,0.6)"
-          strokeWidth="2.2"
+          d="M7 22 A18 18 0 0 1 33 22"
+          stroke="rgba(196,20,37,0.55)"
+          strokeWidth="1.8"
           strokeLinecap="round"
         />
-        {/* Inner arc — brightest */}
+        {/* Inner arc — sharpest */}
         <path
-          d="M14 18 A12 12 0 0 1 30 18"
+          d="M13 13 A11 11 0 0 1 27 13"
           stroke="#c41425"
-          strokeWidth="2.2"
+          strokeWidth="1.8"
           strokeLinecap="round"
         />
         {/* Center dot */}
-        <circle cx="22" cy="36" r="3" fill="#c41425" />
+        <circle 
+          cx="20" 
+          cy="31" 
+          r="2.5" 
+          fill="#c41425" 
+        />
+        {/* Subtle vertical stem from dot to inner arc */}
+        <line
+          x1="20"
+          y1="13"
+          x2="20"
+          y2="28.5"
+          stroke="rgba(196,20,37,0.2)"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
       </svg>
 
-      {/* Wordmark */}
+      {/* Wordmark + optional tagline */}
       {showWordmark && (
-        <span
-          style={{
-            fontSize: `${Math.round(17 * scale)}px`,
-            fontWeight: 700,
-            letterSpacing: '-0.03em',
-            color: '#FAFAFA',
-            fontFamily: 'Inter, sans-serif',
-            lineHeight: 1,
-          }}
-        >
-          Freelance
-          <span style={{ color: '#c41425' }}>OS</span>
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+          <span
+            style={{
+              fontSize: `${Math.round(17 * scale)}px`,
+              fontWeight: 700,
+              letterSpacing: '-0.03em',
+              color: '#FAFAFA',
+              fontFamily: 'Inter, sans-serif',
+              lineHeight: 1,
+            }}
+          >
+            Freelance
+            <span style={{ color: '#c41425' }}>OS</span>
+          </span>
+          {showTagline && (
+            <span
+              style={{
+                fontSize: `${Math.round(9 * scale)}px`,
+                fontWeight: 500,
+                letterSpacing: '0.12em',
+                color: 'rgba(255,255,255,0.28)',
+                fontFamily: '"SF Mono","JetBrains Mono",monospace',
+                textTransform: 'uppercase',
+                lineHeight: 1,
+              }}
+            >
+              Find. Pitch. Get Paid.
+            </span>
+          )}
+        </div>
       )}
     </div>
   )
