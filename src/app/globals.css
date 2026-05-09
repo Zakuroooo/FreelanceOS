@@ -25,11 +25,18 @@
   --color-text-secondary: #8A8A9A;
   --color-text-muted: #4A4A5A;
 
-  /* Accent — crimson red, unambiguously red, zero orange warmth */
-  --color-accent: #c30101;
-  --color-accent-dim: rgba(196, 20, 37, 0.12);
-  --color-accent-border: rgba(196, 20, 37, 0.25);
-  --color-accent-glow: rgba(196, 20, 37, 0.06);
+  /* Accent — Raycast red */
+  --color-accent: #E5484D;
+  --color-accent-dim: rgba(229, 72, 77, 0.10);
+  --color-accent-border: rgba(229, 72, 77, 0.22);
+  --color-accent-glow: rgba(229, 72, 77, 0.06);
+
+  /* Dashboard multi-color palette */
+  --dash-blue:   #3B82F6;
+  --dash-red:    #E5484D;
+  --dash-yellow: #F59E0B;
+  --dash-green:  #10B981;
+  --dash-purple: #8B5CF6;
 
   /* Semantic */
   --color-success: #00C9A7;
