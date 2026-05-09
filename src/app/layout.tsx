@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
-import FloatingDock from '@/components/layout/FloatingDock'
+import LandingShell from '@/components/layout/LandingShell'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
@@ -20,10 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.variable} style={{ backgroundColor: '#060608', fontFamily: 'Inter, -apple-system, sans-serif' }} suppressHydrationWarning>
-        <Navbar />
-        {children}
-        <Footer />
-        <FloatingDock />
+        <LandingShell>{children}</LandingShell>
       </body>
     </html>
   )
