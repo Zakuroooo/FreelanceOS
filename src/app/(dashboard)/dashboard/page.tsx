@@ -48,7 +48,7 @@ const STAT_CARDS = [
     icon:       Users,
     isCurrency: false,
     trend:      '+12% vs last month',
-    iconColor:  '#C41425',
+    iconColor:  '#c30101',
     iconBg:     'rgba(196,20,37,0.10)',
   },
   {
@@ -57,7 +57,7 @@ const STAT_CARDS = [
     icon:       Send,
     isCurrency: false,
     trend:      '+8% vs last month',
-    iconColor:  '#C41425',
+    iconColor:  '#c30101',
     iconBg:     'rgba(196,20,37,0.10)',
   },
   {
@@ -66,8 +66,8 @@ const STAT_CARDS = [
     icon:       Handshake,
     isCurrency: false,
     trend:      '+3 new this week',
-    iconColor:  '#F59E0B',
-    iconBg:     'rgba(245,158,11,0.10)',
+    iconColor:  '#c30101',
+    iconBg:     'rgba(196,20,37,0.10)',
   },
   {
     key:        'totalEarned' as keyof StatsData,
@@ -75,8 +75,8 @@ const STAT_CARDS = [
     icon:       DollarSign,
     isCurrency: true,
     trend:      '+24% vs last month',
-    iconColor:  '#00C9A7',
-    iconBg:     'rgba(0,201,167,0.10)',
+    iconColor:  '#c30101',
+    iconBg:     'rgba(196,20,37,0.10)',
   },
 ]
 
@@ -233,7 +233,7 @@ export default function DashboardOverviewPage() {
               fontWeight: 600,
               letterSpacing: '-0.01em',
               textDecoration: 'none',
-              borderRadius: 9999,
+              borderRadius: 6,
               boxShadow: '0 0 20px rgba(196,20,37,0.25)',
               transition: 'opacity 0.15s ease, transform 0.15s ease',
               flexShrink: 0,

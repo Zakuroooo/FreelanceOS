@@ -105,7 +105,7 @@ export default function Sidebar() {
             fontSize: 13,
             fontWeight: 600,
             color: '#FAFAFA',
-            backgroundColor: 'rgba(196,20,37,0.08)',
+            backgroundColor: 'rgba(196,20,37,0.06)',
             borderLeft: '3px solid #C41425',
             borderRadius: '0 4px 4px 0',
             transition: 'all 0.15s ease',
