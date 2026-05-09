@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, useMotionValueEvent, useScroll, AnimatePresence } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
 const NAV_LINKS = [
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 ]
 
 export default function Navbar() {
+  const pathname = usePathname()
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -20,6 +22,8 @@ export default function Navbar() {
   useMotionValueEvent(scrollY, 'change', (val) => {
     setScrolled(val > 80)
   })
+
+  if (pathname?.startsWith('/dashboard')) return null
 
   return (
     <nav

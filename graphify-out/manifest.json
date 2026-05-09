@@ -1,0 +1,278 @@
+{
+  "/Users/pranaysarkar/Desktop/FreelanceOS/postcss.config.mjs": {
+    "mtime": 1776075698.2217093,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/next-env.d.ts": {
+    "mtime": 1777469999.2483916,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/tailwind.config.ts": {
+    "mtime": 1776186870.2048569,
+    "hash": "70b9ce0f35f762dbf0bb9ad5840eebe2"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/eslint.config.mjs": {
+    "mtime": 1776075681.8022816,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/next.config.ts": {
+    "mtime": 1776075681.8036804,
+    "hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/middleware.ts": {
+    "mtime": 1776676188.067137,
+    "hash": "a2fdf8bda1bf56419f302d0d5f28daf9"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts": {
+    "mtime": 1776676155.6162395,
+    "hash": "33531c9f3ba21f31ac03048af58f082e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts": {
+    "mtime": 1776676172.8618186,
+    "hash": "e3744653a8975c7f66e76b992a7cae9b"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/layout.tsx": {
+    "mtime": 1776533459.310636,
+    "hash": "058a431d3123e51cb19315cd1d98bbfe"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx": {
+    "mtime": 1776651162.249733,
+    "hash": "2ecfba47c5bfd082c247039bafffbe5c"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/register/route.ts": {
+    "mtime": 1776657037.087102,
+    "hash": "280aa42585896076da351b7eb80a447c"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/[...nextauth]/route.ts": {
+    "mtime": 1776657018.801513,
+    "hash": "835a923af49caabac19106f745ac0e3d"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/layout.tsx": {
+    "mtime": 1776657048.4751515,
+    "hash": "e2fa2bc097d65393bea2311159107ca6"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx": {
+    "mtime": 1776657322.908623,
+    "hash": "5b776add316930e9e5968514bac92f6b"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/login/page.tsx": {
+    "mtime": 1776657139.0219536,
+    "hash": "bd61eb58621d824bc5396452213f8eb1"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/SectionBadge.tsx": {
+    "mtime": 1776116414.7692807,
+    "hash": "f5ed3d86085c61c3005cf646151bd339"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx": {
+    "mtime": 1776533044.3895042,
+    "hash": "fe9f01486d67c8302d0043b390d91d83"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx": {
+    "mtime": 1776583694.7976408,
+    "hash": "0edb0bf75fd18d2372bce3b315bf5f09"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx": {
+    "mtime": 1776551354.6087756,
+    "hash": "be292ada4d6ae5d9f07c85a5011876f6"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/sparkles.tsx": {
+    "mtime": 1776535133.5068157,
+    "hash": "469d39eec8b45702393bd53c0b76e473"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx": {
+    "mtime": 1776532933.4252264,
+    "hash": "fc2ec3e209bb5097ed857583bba7f6af"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx": {
+    "mtime": 1776597217.306215,
+    "hash": "cee097a446c336d46dfaf52dfe7249e6"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/Logo.tsx": {
+    "mtime": 1776698031.2263706,
+    "hash": "a3cf7995f8daab3e2208c8c4e976a4b3"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx": {
+    "mtime": 1776116403.9880288,
+    "hash": "f2cf4a5773faae385a2d6241ef8b882c"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/floating-dock.tsx": {
+    "mtime": 1776533656.6182306,
+    "hash": "f5fbe710482df3e8eb7ab0d6771f1b57"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx": {
+    "mtime": 1776534212.9494379,
+    "hash": "e84238e6e3712d28ba5f76ba599ff895"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/encrypted-text.tsx": {
+    "mtime": 1776532931.3922157,
+    "hash": "5ca0f4d8810bc10f6d1f98ba66f7cc36"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Hero.tsx": {
+    "mtime": 1776535222.182032,
+    "hash": "9316b32e56714ae861887a4a28eb0c8e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Pricing.tsx": {
+    "mtime": 1776596407.2863305,
+    "hash": "2400593ce0cbdd7e18b3145224800ba8"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Features.tsx": {
+    "mtime": 1776558532.0350275,
+    "hash": "a6ccd636e42dc23393a5bca1b503b3c0"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx": {
+    "mtime": 1776558261.3602047,
+    "hash": "7f0bdccadae25fbb7674f9e3b6cf942d"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FinalCTA.tsx": {
+    "mtime": 1776597370.1420197,
+    "hash": "f633b75f164d7dcdd55d87e77ed40ec1"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Testimonials.tsx": {
+    "mtime": 1776592793.900057,
+    "hash": "a674af8e56064b20b6d22cfd6e35fa6a"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/LogoMarquee.tsx": {
+    "mtime": 1776535190.5469887,
+    "hash": "2925c40908334d9bba8aa38d2660e777"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/GlobeCTA.tsx": {
+    "mtime": 1776651617.3017209,
+    "hash": "57b9b86c2918c8ddc75ef1866b5aa42a"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/SuccessNumbers.tsx": {
+    "mtime": 1776583547.5181105,
+    "hash": "b50d1e8c7ffecd973200d892a49f3a15"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx": {
+    "mtime": 1776122056.6442404,
+    "hash": "19832e2c1c0972d75f9d7bf0e2c4798e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx": {
+    "mtime": 1776595890.8256166,
+    "hash": "8da1d2cabab3aae8320bbc1d7d6cd0d6"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Problem.tsx": {
+    "mtime": 1776547214.6756577,
+    "hash": "05cf8148df5a19d94c639d1a52d31783"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/auth/AuthRightPanel.tsx": {
+    "mtime": 1776657092.6797023,
+    "hash": "197b4de46e3afe5d7e47cd2aabdf6ec2"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Navbar.tsx": {
+    "mtime": 1776655637.9630246,
+    "hash": "74040bd6f740268255d8eef9b78a9598"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx": {
+    "mtime": 1776111594.6836636,
+    "hash": "6ab9d4bca5b984fc6e26e94a8a98b37e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/FloatingDock.tsx": {
+    "mtime": 1776547110.2583563,
+    "hash": "53ba96a3c75a297818430d96ce4afc19"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Footer.tsx": {
+    "mtime": 1776655866.6239793,
+    "hash": "90beeb46e200c37871a72583f1fc3014"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx": {
+    "mtime": 1776655663.8957229,
+    "hash": "ab76b46773820bbbbb6b830e83fa8428"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx": {
+    "mtime": 1776116388.8265283,
+    "hash": "f2959cd4c8f2c5c8a0ebe5792144908e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts": {
+    "mtime": 1776189459.3440926,
+    "hash": "9a4cc6f9f3155ffdc1fa7c2c097f6429"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts": {
+    "mtime": 1776656970.5685503,
+    "hash": "d7c426ab7d3c9a0f408754d4e4c71f3b"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/User.ts": {
+    "mtime": 1776656988.2134144,
+    "hash": "1afb8bbab13c27a0e9bb62249423a414"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/README.md": {
+    "mtime": 1776075681.801454,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/AGENTS.md": {
+    "mtime": 1776075681.8005242,
+    "hash": "9e09241799026ac05be315a2f0b50055"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/PRD_FREELANCEOS.md": {
+    "mtime": 1776092598.0,
+    "hash": "67a9f0452b2ae53aeb9459f1fc8e5b55"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/TRD_FREELANCEOS.md": {
+    "mtime": 1776092598.0,
+    "hash": "d1bf94e6c1c959bc48c875b4d670856d"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/CLAUDE.md": {
+    "mtime": 1776092598.0,
+    "hash": "bbaff49e53ee896e0c93c1620df3902a"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/file.svg": {
+    "mtime": 1776075698.222839,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/vercel.svg": {
+    "mtime": 1776075698.2232776,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/next.svg": {
+    "mtime": 1776075698.2239566,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/globe.svg": {
+    "mtime": 1776075698.2244153,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/window.svg": {
+    "mtime": 1776075698.224856,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/cta/escrow.png": {
+    "mtime": 1776596309.2962132,
+    "hash": "14d701fdda760187c59b9f12fd539c01"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/cta/revenue.png": {
+    "mtime": 1776596309.2911773,
+    "hash": "102b433e2247aaa7a7ca63f483256b95"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/cta/pipeline.png": {
+    "mtime": 1776596309.2870479,
+    "hash": "8cf499b1cad8a08ffacc4e7c18fe21de"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/cta/pitch.png": {
+    "mtime": 1776596309.2835586,
+    "hash": "9acd12eccb5a900ca5a0fb214912c6f9"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/avatars/av4.png": {
+    "mtime": 1776596935.6855261,
+    "hash": "70650007117de36a4a43f27259435779"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/avatars/av5.png": {
+    "mtime": 1776596935.690255,
+    "hash": "89f39228553763fb0be28971a92276b3"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/avatars/av2.png": {
+    "mtime": 1776596935.6769824,
+    "hash": "81edc5810d9ffa55bda221c754d5338a"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/avatars/av3.png": {
+    "mtime": 1776596935.6808312,
+    "hash": "21ec5df722d72f3950447fe38678d2e0"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/avatars/av1.png": {
+    "mtime": 1776596935.6731164,
+    "hash": "ad31255750fef5168e552991c73bf126"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/public/sounds/sound.ogg": {
+    "mtime": 1776553435.686797,
+    "hash": "a34ac19f4afae63adc5d2f7bc970c07f"
+  }
+}

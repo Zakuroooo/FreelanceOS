@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import Logo from '@/components/ui/Logo'
@@ -31,7 +32,10 @@ const LINKS = {
 }
 
 export default function Footer() {
+  const pathname = usePathname()
   const year = new Date().getFullYear()
+
+  if (pathname?.startsWith('/dashboard')) return null
 
   return (
     <footer style={{ background: '#0a0a0a', position: 'relative', overflow: 'hidden' }}>

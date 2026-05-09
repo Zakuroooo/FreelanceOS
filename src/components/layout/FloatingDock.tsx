@@ -90,9 +90,13 @@ function DockIcon({
     </a>
   )
 }
+import { usePathname } from 'next/navigation'
 
 export default function PageFloatingDock() {
   const mouseX = useMotionValue(Infinity)
+  const pathname = usePathname()
+
+  if (pathname?.startsWith('/dashboard')) return null
 
   return (
     <div

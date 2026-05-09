@@ -6,18 +6,18 @@ interface LogoProps {
   showTagline?: boolean
 }
 
-export default function Logo({ 
-  size = 'md', 
+export default function Logo({
+  size = 'md',
   showWordmark = true,
   showTagline = false
 }: LogoProps) {
   const scale = size === 'sm' ? 0.75 : size === 'lg' ? 1.3 : 1
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      alignItems: 'center', 
-      gap: `${Math.round(12 * scale)}px` 
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: `${Math.round(12 * scale)}px`
     }}>
       {/* Signal arc SVG mark — wide elegant spread */}
       <svg
@@ -49,11 +49,11 @@ export default function Logo({
           strokeLinecap="round"
         />
         {/* Center dot */}
-        <circle 
-          cx="20" 
-          cy="31" 
-          r="2.5" 
-          fill="#c41425" 
+        <circle
+          cx="20"
+          cy="31"
+          r="2.5"
+          fill="#c41425"
         />
         {/* Subtle vertical stem from dot to inner arc */}
         <line
