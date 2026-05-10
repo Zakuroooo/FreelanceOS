@@ -17,6 +17,8 @@ interface Client {
   email: string
   phone: string
   website: string
+  websiteLive?: boolean
+  metaDescription?: string
   socials: { instagram: string; linkedin: string; facebook: string }
   detectedGaps: string[]
   source: string
@@ -185,7 +187,12 @@ function ResultRow({ client, index, isFirst, isLast, saved, onSave }:{
           )}
           {client.website && (
             <span style={{ display:'inline-flex', alignItems:'center', gap:5,
-              fontSize:12, fontFamily:"'JetBrains Mono',monospace", color:'rgba(255,255,255,0.35)' }}>
+              fontSize:12, fontFamily:"'JetBrains Mono',monospace",
+              color: client.websiteLive === false ? 'rgba(229,72,77,0.6)' : 'rgba(255,255,255,0.35)' }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', flexShrink:0,
+                background: client.websiteLive === true  ? '#10B981'
+                          : client.websiteLive === false ? '#E5484D'
+                          : 'rgba(255,255,255,0.2)' }} />
               <Globe size={11} />{client.website.replace(/^https?:\/\//, '').slice(0, 30)}
             </span>
           )}
@@ -202,6 +209,16 @@ function ResultRow({ client, index, isFirst, isLast, saved, onSave }:{
             </span>
           )}
         </div>
+
+        {/* Row 4 — meta description */}
+        {client.metaDescription && (
+          <p style={{ margin:'6px 0 0', fontSize:11, color:'rgba(255,255,255,0.22)',
+            letterSpacing:'-0.01em', lineHeight:1.5,
+            overflow:'hidden', display:'-webkit-box',
+            WebkitLineClamp:1, WebkitBoxOrient:'vertical' }}>
+            {client.metaDescription}
+          </p>
+        )}
       </div>
 
       {/* Right — action buttons */}
