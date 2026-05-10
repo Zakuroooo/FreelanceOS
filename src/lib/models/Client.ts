@@ -6,6 +6,8 @@ export interface IClient extends Document {
   industry?: string
   location?: string
   website?: string
+  websiteLive?: boolean
+  metaDescription?: string
   email?: string
   phone?: string
   socials?: {
@@ -16,6 +18,11 @@ export interface IClient extends Document {
   detectedGaps: string[]
   source: 'scraped' | 'manual'
   status: 'discovered' | 'saved' | 'pitched' | 'replied' | 'deal' | 'closed'
+  opportunityScore?: number
+  rating?: number
+  reviewCount?: number
+  googleMapsUrl?: string
+  category?: string
   notes?: string
   createdAt: Date
 }
@@ -26,6 +33,8 @@ const ClientSchema = new Schema<IClient>({
   industry:     { type: String },
   location:     { type: String },
   website:      { type: String },
+  websiteLive:  { type: Boolean },
+  metaDescription: { type: String },
   email:        { type: String },
   phone:        { type: String },
   socials: {
@@ -44,9 +53,16 @@ const ClientSchema = new Schema<IClient>({
     enum: ['discovered', 'saved', 'pitched', 'replied', 'deal', 'closed'],
     default: 'discovered',
   },
+  opportunityScore: { type: Number },
+  rating:       { type: Number },
+  reviewCount:  { type: Number },
+  googleMapsUrl:{ type: String },
+  category:     { type: String },
   notes:        { type: String },
   createdAt:    { type: Date, default: Date.now },
 })
+
+ClientSchema.index({ userId: 1 })
 
 const Client = models.Client || model<IClient>('Client', ClientSchema)
 export default Client

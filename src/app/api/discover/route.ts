@@ -66,8 +66,8 @@ async function pMap<T, R>(
 /* ═══════════════════════════════════════════════════════
    SOURCE 2 — Website HEAD check + meta description
 ═══════════════════════════════════════════════════════ */
-async function checkWebsite(url: string): Promise<{ live: boolean; description: string }> {
-  if (!url) return { live: false, description: '' }
+async function checkWebsite(url: string): Promise<{ live: boolean; description: string; hasSSL: boolean; hasViewport: boolean }> {
+  if (!url) return { live: false, description: '', hasSSL: false, hasViewport: false }
   try {
     // HEAD to confirm server responds
     const headRes = await fetch(url, {
@@ -75,7 +75,7 @@ async function checkWebsite(url: string): Promise<{ live: boolean; description: 
       signal: AbortSignal.timeout(5000),
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FreelanceOS/1.0)' },
     })
-    if (!headRes.ok && headRes.status !== 405) return { live: false, description: '' }
+    if (!headRes.ok && headRes.status !== 405) return { live: false, description: '', hasSSL: false, hasViewport: false }
 
     // GET for meta description — read only first 8 KB
     const getRes = await fetch(url, {
@@ -83,10 +83,10 @@ async function checkWebsite(url: string): Promise<{ live: boolean; description: 
       signal: AbortSignal.timeout(6000),
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FreelanceOS/1.0)' },
     })
-    if (!getRes.ok) return { live: true, description: '' }
+    if (!getRes.ok) return { live: true, description: '', hasSSL: getRes.url.startsWith('https'), hasViewport: false }
 
     const reader = getRes.body?.getReader()
-    if (!reader) return { live: true, description: '' }
+    if (!reader) return { live: true, description: '', hasSSL: getRes.url.startsWith('https'), hasViewport: false }
 
     let chunk = ''
     let bytes  = 0
@@ -100,10 +100,13 @@ async function checkWebsite(url: string): Promise<{ live: boolean; description: 
 
     const match = chunk.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{0,200})/i)
               || chunk.match(/<meta[^>]+content=["']([^"']{0,200})["'][^>]+name=["']description["']/i)
-    return { live: true, description: match?.[1]?.trim() || '' }
+    
+    const hasViewport = /<meta[^>]+name=["']viewport["']/i.test(chunk)
+    
+    return { live: true, description: match?.[1]?.trim() || '', hasSSL: getRes.url.startsWith('https'), hasViewport }
 
   } catch {
-    return { live: false, description: '' }
+    return { live: false, description: '', hasSSL: false, hasViewport: false }
   }
 }
 
@@ -174,6 +177,10 @@ async function enrich(
   // Gap detection (post-enrichment)
   const gaps: string[] = []
   if (!website || !webCheck.live)          gaps.push('no-website')
+  else {
+    if (!webCheck.hasSSL)                  gaps.push('no-ssl')
+    if (!webCheck.hasViewport)             gaps.push('no-mobile')
+  }
   if (!instagram && !facebook)             gaps.push('no-social')
   if (!raw.videos?.length)                 gaps.push('no-video')
 
@@ -215,8 +222,14 @@ function buildMocks(businessType: string, location: string): EnrichedClient[] {
     const hasWebsite = Math.random() > 0.45
     const hasSocial  = Math.random() > 0.50
     const hasVideo   = Math.random() > 0.60
+    const hasSSL     = Math.random() > 0.20
+    const hasMobile  = Math.random() > 0.30
     const gaps: string[] = []
     if (!hasWebsite) gaps.push('no-website')
+    else {
+      if (!hasSSL) gaps.push('no-ssl')
+      if (!hasMobile) gaps.push('no-mobile')
+    }
     if (!hasSocial)  gaps.push('no-social')
     if (!hasVideo)   gaps.push('no-video')
     const slug = name.toLowerCase().replace(/\s+/g, '')
@@ -270,7 +283,7 @@ export async function POST(req: Request) {
     console.log(`[discover] Starting run — "${businessType} in ${location}"`)
 
     const startRes = await fetch(
-      'https://api.apify.com/v2/acts/compass~crawler-google-places/runs',
+      'https://api.apify.com/v2/acts/apify~google-maps-scraper/runs',
       {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${APIFY_TOKEN}` },
@@ -304,14 +317,14 @@ export async function POST(req: Request) {
       })
       const stData    = await stRes.json()
       const runStatus = stData?.data?.status as string
-      console.log(`[discover] Apify run status (attempt ${attempt + 1}):`, runStatus)
+      console.log('Apify run status:', runStatus)
 
       if (runStatus === 'SUCCEEDED') {
         rawResults = await (await fetch(
           `https://api.apify.com/v2/actor-runs/${runId}/dataset/items?limit=40`,
           { headers: { Authorization: `Bearer ${APIFY_TOKEN}` } }
         )).json()
-        console.log('[discover] Results count:', Array.isArray(rawResults) ? rawResults.length : 'not-array')
+        console.log('Results count:', Array.isArray(rawResults) ? rawResults.length : 'not-array')
         break
       }
       if (runStatus === 'FAILED' || runStatus === 'ABORTED')
