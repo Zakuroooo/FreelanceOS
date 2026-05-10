@@ -84,6 +84,8 @@ export async function POST(req: Request) {
 
   /* ─── real Apify path ───────────────────────────── */
   try {
+    console.log(`[discover] Starting Apify run: "${businessType} in ${location}"`)
+
     const runRes = await fetch(
       'https://api.apify.com/v2/acts/compass~crawler-google-places/runs',
       {
@@ -101,27 +103,38 @@ export async function POST(req: Request) {
         }),
       }
     )
-    if (!runRes.ok) throw new Error(`Apify start failed: ${runRes.status}`)
-    const { data: { id: runId } } = await runRes.json()
+    if (!runRes.ok) {
+      const errBody = await runRes.text()
+      console.error('[discover] Apify start failed:', runRes.status, errBody)
+      throw new Error(`Apify start failed: ${runRes.status} — ${errBody}`)
+    }
+    const runData = await runRes.json()
+    const runId   = runData?.data?.id
+    console.log('[discover] Run started, runId:', runId)
 
-    /* poll */
+    /* poll — 60 attempts × 2 s = 120 s max */
     let rawResults: any[] = []
-    for (let attempt = 0; attempt < 30; attempt++) {
+    for (let attempt = 0; attempt < 60; attempt++) {
       await new Promise(r => setTimeout(r, 2000))
-      const st = await (await fetch(
+      const statusRes  = await fetch(
         `https://api.apify.com/v2/actor-runs/${runId}`,
         { headers: { Authorization: `Bearer ${APIFY_TOKEN}` } }
-      )).json()
-      const status = st.data?.status as string
+      )
+      const statusData = await statusRes.json()
+      const runStatus  = statusData?.data?.status as string
 
-      if (status === 'SUCCEEDED') {
+      console.log(`[discover] Apify run status (attempt ${attempt + 1}):`, runStatus)
+
+      if (runStatus === 'SUCCEEDED') {
         rawResults = await (await fetch(
           `https://api.apify.com/v2/actor-runs/${runId}/dataset/items?limit=40`,
           { headers: { Authorization: `Bearer ${APIFY_TOKEN}` } }
         )).json()
+        console.log('[discover] Results count:', Array.isArray(rawResults) ? rawResults.length : 'not-array')
         break
       }
-      if (status === 'FAILED' || status === 'ABORTED') throw new Error(`Apify actor ${status}`)
+      if (runStatus === 'FAILED' || runStatus === 'ABORTED')
+        throw new Error(`Apify actor ${runStatus}`)
     }
 
     /* map */
