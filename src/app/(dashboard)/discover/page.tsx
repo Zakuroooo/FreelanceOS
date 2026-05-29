@@ -841,6 +841,15 @@ export default function DiscoverPage() {
           onClear={() => setSelectedIds(new Set())}
         />
       </div>
+
+      <IntelDrawer 
+        client={intelDrawerClient} 
+        onClose={() => setIntelDrawerClient(null)} 
+        onSave={(c) => void saveLead(c)}
+        onIgnore={(c) => toggleIgnoreLead(c)}
+        onPitch={(c) => void generatePitch(c)}
+        onSimilar={(c) => toast.message(`Lookalike search for ${c.businessName} lands in Phase 6.`)}
+      />
     </>
   )
 }
