@@ -438,9 +438,7 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
                       <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>Generating pitch...</span>
                     ) : pitch?.error ? (
                       <span style={{ fontSize: 11, color: 'rgba(229,72,77,0.8)', lineHeight: 1.5 }}>
-                        {pitch.error.toLowerCase().includes('clientdata') || pitch.error.toLowerCase().includes('required')
-                          ? 'Unable to generate pitch — try clicking Intel first to load lead data.'
-                          : pitch.error}
+                        {pitch.error}
                       </span>
                     ) : pitch?.content ? (
                       <p style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap', margin: 0 }}>{pitch.content}</p>
