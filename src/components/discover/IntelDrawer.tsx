@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, ArrowRight, Activity, Zap, ShieldAlert, Cpu } from 'lucide-react'
 import { toast } from 'sonner'
 import { type Client } from './DiscoverRow'
 import { ScoreRing } from './ScoreRing'
+
+// Session-level intel cache — survives drawer open/close cycles
+const intelCache = new Map<string, any>()
 
 interface IntelDrawerProps {
   client: Client | null
@@ -26,6 +29,15 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
       return
     }
 
+    const cacheKey = client.id || client.businessName
+
+    // Check cache first — instant load, zero tokens
+    if (intelCache.has(cacheKey)) {
+      setIntel(intelCache.get(cacheKey))
+      setLoading(false)
+      return
+    }
+
     let isMounted = true
     setLoading(true)
     setIntel(null)
@@ -39,7 +51,10 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
       .then(data => {
         if (isMounted) {
           if (data.error) toast.error(data.error)
-          else setIntel(data)
+          else {
+            setIntel(data)
+            intelCache.set(cacheKey, data) // Cache for future opens
+          }
           setLoading(false)
         }
       })
