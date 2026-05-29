@@ -16,7 +16,7 @@ function getScoreColor(score: number) {
 function getRingSize(size: ScoreRingSize) {
   return size === 'lg'
     ? { outer: 74, center: 37, radius: 28, stroke: 5, text: 17, label: 8 }
-    : { outer: 46, center: 23, radius: 16, stroke: 3.5, text: 11, label: 6 }
+    : { outer: 28, center: 14, radius: 10, stroke: 2.5, text: 9, label: 5 }
 }
 
 export function ScoreRing({ score, size = 'sm' }: { score: number; size?: ScoreRingSize }) {

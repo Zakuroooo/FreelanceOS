@@ -4,7 +4,7 @@ import * as cheerio from 'cheerio'
 import dbConnect from '@/lib/db'
 import DiscoverCache from '@/lib/models/DiscoverCache'
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface EnrichedClient {

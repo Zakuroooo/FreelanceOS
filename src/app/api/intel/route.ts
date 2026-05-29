@@ -2,7 +2,40 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import Groq from 'groq-sdk'
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY_1 || process.env.GROQ_API_KEY_FALLBACK })
+const MODEL = 'llama-3.3-70b-versatile'
+
+async function callGroq(prompt: string, systemPrompt: string) {
+  const keys = [
+    process.env.GROQ_API_KEY_1,
+    process.env.GROQ_API_KEY_2,
+    process.env.GROQ_API_KEY_FALLBACK,
+  ].filter(Boolean) as string[]
+
+  if (keys.length === 0) throw new Error('No Groq API keys configured')
+
+  // Try keys in order until one works
+  for (let i = 0; i < keys.length; i++) {
+    try {
+      const groq = new Groq({ apiKey: keys[i] })
+      const completion = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: prompt },
+        ],
+        model: MODEL,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      })
+      const rawContent = completion.choices[0]?.message?.content
+      if (!rawContent) throw new Error('Empty response from Groq')
+      return rawContent
+    } catch (err) {
+      console.warn(`[intel] Key ${i + 1} failed:`, (err as Error).message)
+      if (i === keys.length - 1) throw err // last key, rethrow
+    }
+  }
+  throw new Error('All Groq keys exhausted')
+}
 
 export async function POST(req: Request) {
   try {
@@ -11,7 +44,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientData } = await req.json()
+    let body: { clientData?: any }
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const { clientData } = body
     if (!clientData || !clientData.businessName) {
       return NextResponse.json({ error: 'clientData is required' }, { status: 400 })
     }
@@ -43,20 +83,19 @@ Return a JSON object with EXACTLY these keys:
 Output valid JSON only. Do not wrap it in markdown block quotes.
 `
 
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: 'system', content: 'You are a helpful data processing assistant that strictly outputs JSON.' }, { role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.2,
-      response_format: { type: 'json_object' }
-    })
+    const rawContent = await callGroq(prompt, 'You are a helpful data processing assistant that strictly outputs JSON.')
 
-    const rawContent = completion.choices[0]?.message?.content || '{}'
     let result
     try {
       result = JSON.parse(rawContent)
-    } catch (err) {
-      console.error('Failed to parse Groq response:', rawContent)
-      result = {}
+    } catch {
+      console.error('[intel] Failed to parse Groq response:', rawContent)
+      return NextResponse.json({ error: 'AI returned invalid data. Please try again.' }, { status: 502 })
+    }
+
+    // Validate the response has at least some expected keys
+    if (!result.whyThisLead && !result.serviceMatch) {
+      return NextResponse.json({ error: 'AI returned empty intel. Please try again.' }, { status: 502 })
     }
 
     return NextResponse.json(result, { status: 200 })
@@ -65,3 +104,4 @@ Output valid JSON only. Do not wrap it in markdown block quotes.
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
   }
 }
+

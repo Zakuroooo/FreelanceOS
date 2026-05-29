@@ -78,7 +78,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientData } = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const { clientData } = body
     if (!clientData?.businessName) {
       return NextResponse.json({ error: 'clientData is required' }, { status: 400 })
     }

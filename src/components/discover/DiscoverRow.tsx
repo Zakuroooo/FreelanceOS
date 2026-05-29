@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, MapPin, Star, ExternalLink, AlertTriangle, Check, ArrowRight, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { ScoreRing } from './ScoreRing'
+import './discover-row.css'
 
 /* ── Brand SVGs ── */
 const SVGS = {
@@ -183,41 +184,6 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
   const intel = intelDot[client.intelStatus ?? 'light_scan'] ?? intelDot.light_scan
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{__html:`
-        /* ── Row base ── */
-        .dr-row { transition: all 0.15s ease; border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 8px; }
-        .dr-row:hover { background: rgba(255,255,255,0.02) !important; border-color: rgba(255,255,255,0.1); }
-        .dr-row.is-expanded { background: #000000 !important; border-color: rgba(255,255,255,0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .dr-row.gold-row { border-left: 2px solid #F59E0B !important; }
-
-        /* ── Gap chips ── */
-        .dr-gap { display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;white-space:nowrap; }
-        .dr-gap.gap-red   { color:#E5484D; }
-        .dr-gap.gap-amber { color:#F59E0B; }
-
-        /* ── Contact/social chips ── */
-        .dr-chip { display:inline-flex;align-items:center;gap:5px;padding-right:8px;font-size:10px;color:rgba(255,255,255,0.45);text-decoration:none;transition:all 0.12s;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis; }
-        .dr-chip:hover { color:#FFFFFF !important; }
-        .dr-chip.missing { color:rgba(255,255,255,0.18); cursor:default; pointer-events:none; }
-
-        /* ── Action buttons ── */
-        .dr-btn { display:inline-flex;align-items:center;gap:5px;padding:4px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:0.06em;background:transparent;border:none;cursor:pointer;transition:all 0.12s;text-transform:uppercase;white-space:nowrap; }
-        .dr-btn.sec  { color:rgba(255,255,255,0.4); }
-        .dr-btn.sec:hover  { color:#FFFFFF; }
-        .dr-btn.pri  { color:#E5484D; }
-        .dr-btn.pri:hover  { color:#F87171; }
-        .dr-btn.pri.is-saved { color:#00C9A7; }
-        .dr-btn.danger { color:rgba(229,72,77,0.7); }
-        .dr-btn.danger:hover { color:#E5484D; }
-
-        /* ── Checkbox ── */
-        .dr-chk { width:14px;height:14px;border-radius:2px;border:1px solid;display:flex;align-items:center;justify-content:center;transition:all 0.12s;flex-shrink:0;cursor:pointer; }
-
-        /* ── Intel status dot ── */
-        @keyframes pulse-dot { 0%,100%{opacity:0.4} 50%{opacity:1} }
-        .dr-dot-pulse { animation: pulse-dot 1.4s ease-in-out infinite; }
-      `}} />
       <motion.div
         ref={rowRef}
         className={`dr-row${expanded ? ' is-expanded' : ''}${isGold ? ' gold-row' : ''}`}
@@ -452,8 +418,8 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
                   <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 3, padding: 12, minHeight: 72 }}>
                     {pitch?.loading ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <span style={{ fontSize: 11, color: 'rgba(0,201,167,0.7)', fontFamily: "'JetBrains Mono',monospace" }}>⟳ Generating pitch with 4-step AI pipeline...</span>
-                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>Researching → Drafting → Critiquing → Perfecting</span>
+                        <span style={{ fontSize: 11, color: 'rgba(0,201,167,0.95)', fontFamily: "'JetBrains Mono',monospace", fontWeight: 600 }}>⟳ Generating pitch with 4-step AI pipeline...</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.03em' }}>Researching → Drafting → Critiquing → Perfecting</span>
                       </div>
                     ) : pitch?.error ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -483,7 +449,6 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
           )}
         </AnimatePresence>
       </motion.div>
-    </>
   )
 }
 
