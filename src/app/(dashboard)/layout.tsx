@@ -29,6 +29,7 @@ export default function DashboardLayout({
 
         .dashboard-main {
           flex: 1;
+          min-width: 0;
           margin-left: 60px;
           display: flex;
           flex-direction: column;
@@ -38,6 +39,7 @@ export default function DashboardLayout({
 
         .dashboard-content {
           flex: 1;
+          min-width: 0;
           padding: 28px 32px 64px;
         }
 

@@ -227,7 +227,6 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
         style={{
           background: expanded ? '#000000' : selected ? 'rgba(229,72,77,0.03)' : '#000000',
           position: 'relative',
-          overflow: 'hidden',
         }}
         onMouseEnter={() => { hoverTmr.current = window.setTimeout(() => onHover(client), 600) }}
         onMouseLeave={() => { if (hoverTmr.current) { clearTimeout(hoverTmr.current); hoverTmr.current = null } }}
@@ -253,7 +252,7 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
 
           {/* Main info */}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5, justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>
                 {client.businessName}
               </span>
@@ -415,6 +414,45 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
                       )}
                     </div>
                   ))}
+                </div>
+
+                {/* Intel / Pitch */}
+                <div>
+                  <div style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Intel</div>
+                  {client.metaDescription && (
+                    <p style={{ fontSize: 11, lineHeight: 1.55, color: 'rgba(255,255,255,0.4)', margin: '0 0 12px', fontStyle: 'italic' }}>
+                      {client.metaDescription}
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>AI Pitch</span>
+                    {pitch?.content && (
+                      <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(pitch.content!); toast.success('Copied') }}
+                        style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        Copy
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 3, padding: 12, minHeight: 72 }}>
+                    {pitch?.loading ? (
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>Generating pitch...</span>
+                    ) : pitch?.error ? (
+                      <span style={{ fontSize: 11, color: 'rgba(229,72,77,0.8)', lineHeight: 1.5 }}>
+                        {pitch.error.toLowerCase().includes('clientdata') || pitch.error.toLowerCase().includes('required')
+                          ? 'Unable to generate pitch — try clicking Intel first to load lead data.'
+                          : pitch.error}
+                      </span>
+                    ) : pitch?.content ? (
+                      <p style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap', margin: 0 }}>{pitch.content}</p>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 48 }}>
+                        <button onClick={e => { e.stopPropagation(); onPitch() }}
+                          className="dr-btn sec" style={{ gap: 6 }}>
+                          Generate Pitch <ArrowRight size={9} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
               </div>
