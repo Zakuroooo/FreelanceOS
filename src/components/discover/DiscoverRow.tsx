@@ -292,7 +292,7 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
 
               {client.location && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'rgba(255,255,255,0.22)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  <MapPin size={9} flexShrink={0} />{shortLocation(client.location)}
+                  <MapPin size={9} style={{ flexShrink: 0 }} />{shortLocation(client.location)}
                 </span>
               )}
             </div>
