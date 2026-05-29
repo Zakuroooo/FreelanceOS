@@ -3,9 +3,31 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import Groq from 'groq-sdk'
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-})
+async function runPrompt(apiKey: string | undefined, prompt: string, fallbackKey: string | undefined) {
+  if (!apiKey) throw new Error('API key is missing')
+  
+  try {
+    const groq = new Groq({ apiKey })
+    const res = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.6,
+      max_tokens: 400,
+    })
+    return res.choices[0]?.message?.content || ''
+  } catch (error) {
+    console.warn('Groq request failed, using fallback key...')
+    if (!fallbackKey) throw error
+    const groqFallback = new Groq({ apiKey: fallbackKey })
+    const res = await groqFallback.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.6,
+      max_tokens: 400,
+    })
+    return res.choices[0]?.message?.content || ''
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -25,42 +47,79 @@ export async function POST(req: Request) {
 
     const senderName = session.user.name || 'Your Name'
 
-    const prompt = `
-You are an elite, top-tier sales representative for a premium digital growth agency.
-Your task is to write a highly converting, hyper-personalized, and professional cold email pitch for a potential client.
+    // Key Assignments
+    const key1 = process.env.GROQ_API_KEY_1
+    const key2 = process.env.GROQ_API_KEY_2
+    const key3 = process.env.GROQ_API_KEY_3
+    const key4 = process.env.GROQ_API_KEY_4
+    const fallback = process.env.GROQ_API_KEY_FALLBACK
 
-Client details:
-- Business Name: ${clientData.businessName}
-- Industry: ${clientData.industry || 'Unknown'}
-- Location: ${clientData.location || 'Unknown'}
-- Detected Digital Gaps: ${gapsStr}
-- Current Website: ${clientData.website || 'None'}
-- Business Description: ${clientData.metaDescription || 'None'}
+    // ---------------------------------------------------------
+    // Step 1: The Writer
+    // ---------------------------------------------------------
+    const prompt1 = `
+You are a sales representative. Write a cold email pitch for this potential client.
+Business Name: ${clientData.businessName}
+Location: ${clientData.location || 'Unknown'}
+Detected Digital Gaps: ${gapsStr}
+Business Description: ${clientData.metaDescription || 'None'}
 
-Sender details:
-- Name: ${senderName}
-
-Guidelines:
-1. Subject line should be catchy, natural, and directly relevant to their business.
-2. The email MUST be short, punchy, and highly readable (under 120 words). No fluff.
-3. Naturally mention their specific business name and location in the opening.
-4. If a Business Description is provided, use a specific detail from it to show you have done your research.
-5. Softly point out the digital gaps we found (e.g. if they have no website, no social presence, or missing video content) as an "opportunity for growth" rather than an insult.
-6. Propose a clear, low-friction call to action (e.g. asking if they are open to a quick 5-minute chat next week).
-7. Sign off professionally using the exact name: ${senderName}. DO NOT use brackets like [Your Name].
-8. Return the output in plain text format, starting with "Subject: " on the first line, followed by the body.
+Mention the gaps as an opportunity for growth and ask for a 5-minute chat.
 `
+    const draft1 = await runPrompt(key1, prompt1, fallback)
 
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.6,
-      max_tokens: 400,
-    })
+    // ---------------------------------------------------------
+    // Step 2: The Editor
+    // ---------------------------------------------------------
+    const prompt2 = `
+You are an expert copywriter. Review this cold email draft:
+"${draft1}"
 
-    const pitch = chatCompletion.choices[0]?.message?.content || ''
+Rewrite it to be much shorter, punchier, and highly conversational. Remove any fluff or corporate jargon. Make it sound like it was written by a real human, not an AI. Keep it under 100 words.
+`
+    const draft2 = await runPrompt(key2, prompt2, fallback)
 
-    return NextResponse.json({ pitch }, { status: 200 })
+    // ---------------------------------------------------------
+    // Step 3: The Critic
+    // ---------------------------------------------------------
+    const prompt3 = `
+You are a harsh sales critic. Review this cold email pitch:
+"${draft2}"
+
+The client is ${clientData.businessName} in ${clientData.location || 'Unknown'}. 
+The gaps we detected are: ${gapsStr}.
+
+Identify any problems with this pitch. Is it too spammy? Does it fail to mention the specific gaps? Write a short bulleted list of strict instructions on exactly how to fix the pitch so it converts better. Do not write a new pitch, only the critique instructions.
+`
+    const critique = await runPrompt(key3, prompt3, fallback)
+
+    // ---------------------------------------------------------
+    // Step 4: The Closer
+    // ---------------------------------------------------------
+    const prompt4 = `
+You are an elite, top-tier sales closer for a premium digital growth agency.
+Your task is to write the absolute final, perfect cold email pitch.
+
+Here is the current draft:
+"${draft2}"
+
+Here is the Critic's feedback on how to improve it:
+"${critique}"
+
+Client Name: ${clientData.businessName}
+
+Synthesize everything into the ultimate cold email.
+Guidelines:
+1. Subject line should be catchy, natural, and highly relevant.
+2. The email MUST be short, punchy, and highly readable (under 120 words). No fluff.
+3. It must address the Critic's feedback perfectly.
+4. Softly point out the digital gaps as an "opportunity for growth".
+5. Sign off professionally using exactly: ${senderName}. DO NOT use brackets like [Your Name].
+6. Return ONLY the plain text format, starting with "Subject: " on the first line, followed by the body. No introductory or concluding text.
+`
+    const finalPitch = await runPrompt(key4, prompt4, fallback)
+
+    return NextResponse.json({ pitch: finalPitch.trim() }, { status: 200 })
   } catch (error: any) {
     console.error('[pitch/POST] error:', error)
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
