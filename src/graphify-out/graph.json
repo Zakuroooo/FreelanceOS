@@ -1,0 +1,1487 @@
+{
+  "nodes": [
+    {
+      "id": "file::layout",
+      "label": "layout.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx:1"
+    },
+    {
+      "id": "file::route",
+      "label": "route.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/stats/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/stats/route.ts:1"
+    },
+    {
+      "id": "route::post",
+      "label": "POST",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/register/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/register/route.ts:6"
+    },
+    {
+      "id": "route::delete",
+      "label": "DELETE",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts:46"
+    },
+    {
+      "id": "route::get",
+      "label": "GET",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/stats/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/stats/route.ts:6"
+    },
+    {
+      "id": "route::pmap",
+      "label": "pMap",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:21"
+    },
+    {
+      "id": "route::countsocials",
+      "label": "countSocials",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:29"
+    },
+    {
+      "id": "route::scrapewebsite",
+      "label": "scrapeWebsite",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:34"
+    },
+    {
+      "id": "route::serpknowledgegraph",
+      "label": "serpKnowledgeGraph",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:119"
+    },
+    {
+      "id": "route::targetedsocialsearch",
+      "label": "targetedSocialSearch",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:184"
+    },
+    {
+      "id": "route::guesshandle",
+      "label": "guessHandle",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:242"
+    },
+    {
+      "id": "route::scrapeaggregator",
+      "label": "scrapeAggregator",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:272"
+    },
+    {
+      "id": "route::enrichplace",
+      "label": "enrichPlace",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:322"
+    },
+    {
+      "id": "route::fetchviaapify",
+      "label": "fetchViaApify",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:415"
+    },
+    {
+      "id": "route::fetchviaserpapi",
+      "label": "fetchViaSerpApi",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:439"
+    },
+    {
+      "id": "route::fetchviagoogleplaces",
+      "label": "fetchViaGooglePlaces",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:456"
+    },
+    {
+      "id": "route::fetchviafoursquare",
+      "label": "fetchViaFoursquare",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:481"
+    },
+    {
+      "id": "file::page",
+      "label": "page.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx:1"
+    },
+    {
+      "id": "page::handlesubmit",
+      "label": "handleSubmit",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/login/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/login/page.tsx:19"
+    },
+    {
+      "id": "page::e",
+      "label": "e",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx:207"
+    },
+    {
+      "id": "page::fetchclients",
+      "label": "fetchClients",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx:49"
+    },
+    {
+      "id": "page::removeclient",
+      "label": "removeClient",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx:65"
+    },
+    {
+      "id": "page::generatepitch",
+      "label": "generatePitch",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx:136"
+    },
+    {
+      "id": "page::runsearch",
+      "label": "runSearch",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx:75"
+    },
+    {
+      "id": "page::togglesave",
+      "label": "toggleSave",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx:152"
+    },
+    {
+      "id": "page::fadeup",
+      "label": "fadeUp",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx:29"
+    },
+    {
+      "id": "page::load",
+      "label": "load",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx:92"
+    },
+    {
+      "id": "layout::dashboardlayout",
+      "label": "DashboardLayout",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx:5"
+    },
+    {
+      "id": "page::home",
+      "label": "Home",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx:13"
+    },
+    {
+      "id": "file::auth_config",
+      "label": "auth.config.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts:1"
+    },
+    {
+      "id": "auth_config::jwt",
+      "label": "jwt",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts:10"
+    },
+    {
+      "id": "auth_config::session",
+      "label": "session",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts:17"
+    },
+    {
+      "id": "file::sectionbadge",
+      "label": "SectionBadge.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/SectionBadge.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/SectionBadge.tsx:1"
+    },
+    {
+      "id": "file::world_map",
+      "label": "world-map.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx:1"
+    },
+    {
+      "id": "world_map::latlngtoxy",
+      "label": "latLngToXY",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx:19"
+    },
+    {
+      "id": "file::animatedcounter",
+      "label": "AnimatedCounter.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx:1"
+    },
+    {
+      "id": "animatedcounter::easeoutquart",
+      "label": "easeOutQuart",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx:36"
+    },
+    {
+      "id": "animatedcounter::tick",
+      "label": "tick",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx:40"
+    },
+    {
+      "id": "file::terminal",
+      "label": "terminal.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx:1"
+    },
+    {
+      "id": "terminal::playkeystroke",
+      "label": "playKeystroke",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx:44"
+    },
+    {
+      "id": "terminal::typecommand",
+      "label": "typeCommand",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx:58"
+    },
+    {
+      "id": "file::sparkles",
+      "label": "sparkles.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/sparkles.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/sparkles.tsx:1"
+    },
+    {
+      "id": "file::hover_border_gradient",
+      "label": "hover-border-gradient.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx:1"
+    },
+    {
+      "id": "hover-border-gradient::rotatedirection",
+      "label": "rotateDirection",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx:29"
+    },
+    {
+      "id": "hover_border_gradient::cn",
+      "label": "cn",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx:61"
+    },
+    {
+      "id": "file::3d_card",
+      "label": "3d-card.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:1"
+    },
+    {
+      "id": "3d-card::handlemousemove",
+      "label": "handleMouseMove",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:29"
+    },
+    {
+      "id": "3d-card::handlemouseenter",
+      "label": "handleMouseEnter",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:38"
+    },
+    {
+      "id": "3d-card::handlemouseleave",
+      "label": "handleMouseLeave",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:42"
+    },
+    {
+      "id": "3d-card::usemouseenter",
+      "label": "useMouseEnter",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:143"
+    },
+    {
+      "id": "file::logo",
+      "label": "Logo.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/Logo.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/Logo.tsx:1"
+    },
+    {
+      "id": "file::wobblecard",
+      "label": "WobbleCard.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx:1"
+    },
+    {
+      "id": "wobblecard::handlemousemove",
+      "label": "handleMouseMove",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx:19"
+    },
+    {
+      "id": "wobblecard::handlemouseleave",
+      "label": "handleMouseLeave",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx:31"
+    },
+    {
+      "id": "file::floating_dock",
+      "label": "floating-dock.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/floating-dock.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/floating-dock.tsx:1"
+    },
+    {
+      "id": "file::resizable_navbar",
+      "label": "resizable-navbar.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx:1"
+    },
+    {
+      "id": "resizable_navbar::navbar",
+      "label": "Navbar",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx:10"
+    },
+    {
+      "id": "resizable_navbar::cn",
+      "label": "cn",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx:26"
+    },
+    {
+      "id": "file::encrypted_text",
+      "label": "encrypted-text.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/encrypted-text.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/encrypted-text.tsx:1"
+    },
+    {
+      "id": "file::hero",
+      "label": "Hero.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Hero.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Hero.tsx:1"
+    },
+    {
+      "id": "file::pricing",
+      "label": "Pricing.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Pricing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Pricing.tsx:1"
+    },
+    {
+      "id": "file::features",
+      "label": "Features.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Features.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Features.tsx:1"
+    },
+    {
+      "id": "file::howitworks",
+      "label": "HowItWorks.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:1"
+    },
+    {
+      "id": "howitworks::getaudiocontext",
+      "label": "getAudioContext",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:50"
+    },
+    {
+      "id": "howitworks::playkeystroke",
+      "label": "playKeystroke",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:62"
+    },
+    {
+      "id": "HowItWorks::resumeaudio",
+      "label": "resumeAudio",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:655"
+    },
+    {
+      "id": "HowItWorks::getmockup",
+      "label": "getMockup",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:685"
+    },
+    {
+      "id": "file::finalcta",
+      "label": "FinalCTA.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FinalCTA.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FinalCTA.tsx:1"
+    },
+    {
+      "id": "file::testimonials",
+      "label": "Testimonials.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Testimonials.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Testimonials.tsx:1"
+    },
+    {
+      "id": "file::logomarquee",
+      "label": "LogoMarquee.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/LogoMarquee.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/LogoMarquee.tsx:1"
+    },
+    {
+      "id": "file::globecta",
+      "label": "GlobeCTA.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/GlobeCTA.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/GlobeCTA.tsx:1"
+    },
+    {
+      "id": "file::successnumbers",
+      "label": "SuccessNumbers.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/SuccessNumbers.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/SuccessNumbers.tsx:1"
+    },
+    {
+      "id": "file::animateddashboard",
+      "label": "AnimatedDashboard.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:1"
+    },
+    {
+      "id": "animateddashboard::kbd",
+      "label": "Kbd",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:44"
+    },
+    {
+      "id": "AnimatedDashboard::w",
+      "label": "w",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:231"
+    },
+    {
+      "id": "AnimatedDashboard::mov",
+      "label": "mov",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:232"
+    },
+    {
+      "id": "AnimatedDashboard::clk",
+      "label": "clk",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:233"
+    },
+    {
+      "id": "AnimatedDashboard::loop",
+      "label": "loop",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:235"
+    },
+    {
+      "id": "file::faq",
+      "label": "FAQ.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx:1"
+    },
+    {
+      "id": "FAQ::toggle",
+      "label": "toggle",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx:36"
+    },
+    {
+      "id": "file::problem",
+      "label": "Problem.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Problem.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Problem.tsx:1"
+    },
+    {
+      "id": "file::discoverfilters",
+      "label": "DiscoverFilters.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx:1"
+    },
+    {
+      "id": "discoverfilters::handlekey",
+      "label": "handleKey",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx:18"
+    },
+    {
+      "id": "discoverfilters::onquerychange",
+      "label": "onQueryChange",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx:40"
+    },
+    {
+      "id": "file::scorering",
+      "label": "ScoreRing.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx:1"
+    },
+    {
+      "id": "scorering::scorecolor",
+      "label": "scoreColor",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx:6"
+    },
+    {
+      "id": "scorering::scorering",
+      "label": "ScoreRing",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx:12"
+    },
+    {
+      "id": "file::discoverrow",
+      "label": "DiscoverRow.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:1"
+    },
+    {
+      "id": "DiscoverRow::guesscountry",
+      "label": "guessCountry",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:19"
+    },
+    {
+      "id": "DiscoverRow::getnormalizedwhatsapp",
+      "label": "getNormalizedWhatsApp",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:32"
+    },
+    {
+      "id": "DiscoverRow::gethandle",
+      "label": "getHandle",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:72"
+    },
+    {
+      "id": "file::discoverloading",
+      "label": "DiscoverLoading.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverLoading.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverLoading.tsx:1"
+    },
+    {
+      "id": "file::gapbadge",
+      "label": "GapBadge.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/GapBadge.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/GapBadge.tsx:1"
+    },
+    {
+      "id": "file::authrightpanel",
+      "label": "AuthRightPanel.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/auth/AuthRightPanel.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/auth/AuthRightPanel.tsx:1"
+    },
+    {
+      "id": "file::navbar",
+      "label": "Navbar.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Navbar.tsx:1"
+    },
+    {
+      "id": "file::topbar",
+      "label": "TopBar.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/TopBar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/TopBar.tsx:1"
+    },
+    {
+      "id": "file::container",
+      "label": "Container.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx:1"
+    },
+    {
+      "id": "container::container",
+      "label": "Container",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx:9"
+    },
+    {
+      "id": "file::bottomnav",
+      "label": "BottomNav.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx:1"
+    },
+    {
+      "id": "bottomnav::bottomnav",
+      "label": "BottomNav",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx:15"
+    },
+    {
+      "id": "file::floatingdock",
+      "label": "FloatingDock.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/FloatingDock.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/FloatingDock.tsx:1"
+    },
+    {
+      "id": "file::footer",
+      "label": "Footer.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Footer.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Footer.tsx:1"
+    },
+    {
+      "id": "file::landingshell",
+      "label": "LandingShell.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx:1"
+    },
+    {
+      "id": "landingshell::landingshell",
+      "label": "LandingShell",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx:19"
+    },
+    {
+      "id": "file::sidebar",
+      "label": "Sidebar.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx:1"
+    },
+    {
+      "id": "sidebar::handlemouseenter",
+      "label": "handleMouseEnter",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx:152"
+    },
+    {
+      "id": "sidebar::handlemouseleave",
+      "label": "handleMouseLeave",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx:156"
+    },
+    {
+      "id": "file::freelancercharacter",
+      "label": "FreelancerCharacter.tsx",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx:1"
+    },
+    {
+      "id": "freelancercharacter::getspeechindex",
+      "label": "getSpeechIndex",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx:23"
+    },
+    {
+      "id": "file::proxy",
+      "label": "proxy.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/proxy.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/proxy.ts:1"
+    },
+    {
+      "id": "file::utils",
+      "label": "utils.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts:1"
+    },
+    {
+      "id": "utils::cn",
+      "label": "cn",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts:4"
+    },
+    {
+      "id": "file::pitch",
+      "label": "Pitch.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Pitch.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Pitch.ts:1"
+    },
+    {
+      "id": "file::deal",
+      "label": "Deal.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Deal.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Deal.ts:1"
+    },
+    {
+      "id": "file::client",
+      "label": "Client.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Client.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Client.ts:1"
+    },
+    {
+      "id": "file::notification",
+      "label": "Notification.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Notification.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Notification.ts:1"
+    },
+    {
+      "id": "file::discovercache",
+      "label": "DiscoverCache.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/DiscoverCache.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/DiscoverCache.ts:1"
+    },
+    {
+      "id": "file::user",
+      "label": "User.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/User.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/User.ts:1"
+    },
+    {
+      "id": "file::db",
+      "label": "db.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts:1"
+    },
+    {
+      "id": "db::dbconnect",
+      "label": "dbConnect",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts:25"
+    },
+    {
+      "id": "file::auth",
+      "label": "auth.ts",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts:1"
+    },
+    {
+      "id": "auth::authorize",
+      "label": "authorize",
+      "fileType": "code",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts:28"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file::route",
+      "target": "route::post",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/pitch/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/pitch/route.ts:10",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::delete",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts:46",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::get",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts:68",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::pmap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:21",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::countsocials",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:29",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::scrapewebsite",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:34",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::serpknowledgegraph",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:119",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::targetedsocialsearch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:184",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::guesshandle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:242",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::scrapeaggregator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:272",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::enrichplace",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:322",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::fetchviaapify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:415",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::fetchviaserpapi",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:439",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::fetchviagoogleplaces",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:456",
+      "weight": 1
+    },
+    {
+      "source": "file::route",
+      "target": "route::fetchviafoursquare",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts:481",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::handlesubmit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx:29",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::e",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/signup/page.tsx:207",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::fetchclients",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx:49",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::removeclient",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx:65",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::generatepitch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx:82",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::runsearch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx:75",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::togglesave",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx:152",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::fadeup",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx:29",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::load",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx:92",
+      "weight": 1
+    },
+    {
+      "source": "file::layout",
+      "target": "layout::dashboardlayout",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx:5",
+      "weight": 1
+    },
+    {
+      "source": "file::page",
+      "target": "page::home",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx:13",
+      "weight": 1
+    },
+    {
+      "source": "file::auth_config",
+      "target": "auth_config::jwt",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts:10",
+      "weight": 1
+    },
+    {
+      "source": "file::auth_config",
+      "target": "auth_config::session",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts:17",
+      "weight": 1
+    },
+    {
+      "source": "file::world_map",
+      "target": "world_map::latlngtoxy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/world-map.tsx:19",
+      "weight": 1
+    },
+    {
+      "source": "file::animatedcounter",
+      "target": "animatedcounter::easeoutquart",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx:36",
+      "weight": 1
+    },
+    {
+      "source": "file::animatedcounter",
+      "target": "animatedcounter::tick",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/AnimatedCounter.tsx:40",
+      "weight": 1
+    },
+    {
+      "source": "file::terminal",
+      "target": "terminal::playkeystroke",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx:44",
+      "weight": 1
+    },
+    {
+      "source": "file::terminal",
+      "target": "terminal::typecommand",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/terminal.tsx:58",
+      "weight": 1
+    },
+    {
+      "source": "file::hover_border_gradient",
+      "target": "hover-border-gradient::rotatedirection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx:29",
+      "weight": 1
+    },
+    {
+      "source": "file::hover_border_gradient",
+      "target": "hover_border_gradient::cn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/hover-border-gradient.tsx:61",
+      "weight": 1
+    },
+    {
+      "source": "file::3d_card",
+      "target": "3d-card::handlemousemove",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:29",
+      "weight": 1
+    },
+    {
+      "source": "file::3d_card",
+      "target": "3d-card::handlemouseenter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:38",
+      "weight": 1
+    },
+    {
+      "source": "file::3d_card",
+      "target": "3d-card::handlemouseleave",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:42",
+      "weight": 1
+    },
+    {
+      "source": "file::3d_card",
+      "target": "3d-card::usemouseenter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/3d-card.tsx:143",
+      "weight": 1
+    },
+    {
+      "source": "file::wobblecard",
+      "target": "wobblecard::handlemousemove",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx:19",
+      "weight": 1
+    },
+    {
+      "source": "file::wobblecard",
+      "target": "wobblecard::handlemouseleave",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/WobbleCard.tsx:31",
+      "weight": 1
+    },
+    {
+      "source": "file::resizable_navbar",
+      "target": "resizable_navbar::navbar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx:10",
+      "weight": 1
+    },
+    {
+      "source": "file::resizable_navbar",
+      "target": "resizable_navbar::cn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/resizable-navbar.tsx:26",
+      "weight": 1
+    },
+    {
+      "source": "file::howitworks",
+      "target": "howitworks::getaudiocontext",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:50",
+      "weight": 1
+    },
+    {
+      "source": "file::howitworks",
+      "target": "howitworks::playkeystroke",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:62",
+      "weight": 1
+    },
+    {
+      "source": "file::howitworks",
+      "target": "HowItWorks::resumeaudio",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:655",
+      "weight": 1
+    },
+    {
+      "source": "file::howitworks",
+      "target": "HowItWorks::getmockup",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/HowItWorks.tsx:685",
+      "weight": 1
+    },
+    {
+      "source": "file::animateddashboard",
+      "target": "animateddashboard::kbd",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:44",
+      "weight": 1
+    },
+    {
+      "source": "file::animateddashboard",
+      "target": "AnimatedDashboard::w",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:231",
+      "weight": 1
+    },
+    {
+      "source": "file::animateddashboard",
+      "target": "AnimatedDashboard::mov",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:232",
+      "weight": 1
+    },
+    {
+      "source": "file::animateddashboard",
+      "target": "AnimatedDashboard::clk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:233",
+      "weight": 1
+    },
+    {
+      "source": "file::animateddashboard",
+      "target": "AnimatedDashboard::loop",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/AnimatedDashboard.tsx:235",
+      "weight": 1
+    },
+    {
+      "source": "file::faq",
+      "target": "FAQ::toggle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/FAQ.tsx:36",
+      "weight": 1
+    },
+    {
+      "source": "file::discoverfilters",
+      "target": "discoverfilters::handlekey",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx:18",
+      "weight": 1
+    },
+    {
+      "source": "file::discoverfilters",
+      "target": "discoverfilters::onquerychange",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx:40",
+      "weight": 1
+    },
+    {
+      "source": "file::scorering",
+      "target": "scorering::scorecolor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx:6",
+      "weight": 1
+    },
+    {
+      "source": "file::scorering",
+      "target": "scorering::scorering",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx:12",
+      "weight": 1
+    },
+    {
+      "source": "file::discoverrow",
+      "target": "DiscoverRow::guesscountry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:19",
+      "weight": 1
+    },
+    {
+      "source": "file::discoverrow",
+      "target": "DiscoverRow::getnormalizedwhatsapp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:32",
+      "weight": 1
+    },
+    {
+      "source": "file::discoverrow",
+      "target": "DiscoverRow::gethandle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx:72",
+      "weight": 1
+    },
+    {
+      "source": "file::container",
+      "target": "container::container",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx:9",
+      "weight": 1
+    },
+    {
+      "source": "file::bottomnav",
+      "target": "bottomnav::bottomnav",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx:15",
+      "weight": 1
+    },
+    {
+      "source": "file::landingshell",
+      "target": "landingshell::landingshell",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx:19",
+      "weight": 1
+    },
+    {
+      "source": "file::sidebar",
+      "target": "sidebar::handlemouseenter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx:152",
+      "weight": 1
+    },
+    {
+      "source": "file::sidebar",
+      "target": "sidebar::handlemouseleave",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx:156",
+      "weight": 1
+    },
+    {
+      "source": "file::freelancercharacter",
+      "target": "freelancercharacter::getspeechindex",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx:23",
+      "weight": 1
+    },
+    {
+      "source": "file::utils",
+      "target": "utils::cn",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts:4",
+      "weight": 1
+    },
+    {
+      "source": "file::db",
+      "target": "db::dbconnect",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/db.ts:25",
+      "weight": 1
+    },
+    {
+      "source": "file::auth",
+      "target": "auth::authorize",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "sourceFile": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts",
+      "sourceLocation": "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts:28",
+      "weight": 1
+    }
+  ],
+  "metadata": {
+    "files": 65,
+    "nodes": 122,
+    "edges": 69,
+    "builtAt": "2026-05-11T22:08:20.282Z"
+  }
+}

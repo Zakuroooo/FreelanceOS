@@ -1,43 +1,83 @@
 {
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test-scrape.js": {
+    "mtime": 1778440855.1313193,
+    "hash": "f481653dbe357dae6c6bf2df3ace9f19"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/postcss.config.mjs": {
     "mtime": 1776075698.2217093,
     "hash": "239f3ebf717465dc636818a1a619398d"
   },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test-apify.js": {
+    "mtime": 1778417709.231947,
+    "hash": "ca47aab3fb380b8fbdb39c2614fe313b"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/next-env.d.ts": {
-    "mtime": 1777469999.2483916,
-    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+    "mtime": 1778545310.637106,
+    "hash": "2a74d3909800ca5467fa83b0ab4a4890"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/tailwind.config.ts": {
-    "mtime": 1776186870.2048569,
-    "hash": "70b9ce0f35f762dbf0bb9ad5840eebe2"
+    "mtime": 1778369910.8355975,
+    "hash": "9e47f51a736d5dae3f5a10d2b2c1528f"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test-website.js": {
+    "mtime": 1778440811.5288892,
+    "hash": "90c096f1fba131c2a3bb0c799148523b"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test_apify.js": {
+    "mtime": 1778417357.1454427,
+    "hash": "a6a3a9b7f0bf2b4e00ed428e6f6aba11"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/eslint.config.mjs": {
     "mtime": 1776075681.8022816,
     "hash": "dfa1f5f6a7037bf39dc510f30b180002"
   },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test_google_places.js": {
+    "mtime": 1778511439.2200265,
+    "hash": "ba38d83ed4c40e0ee4123ff4e5d5bbb5"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/test-phone.ts": {
+    "mtime": 1778517900.3114986,
+    "hash": "6578252c56eea1c05bea4357a64e4fe1"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/next.config.ts": {
     "mtime": 1776075681.8036804,
     "hash": "9b77af189a21a7a64e4bd7a426f64176"
   },
-  "/Users/pranaysarkar/Desktop/FreelanceOS/src/middleware.ts": {
-    "mtime": 1776676188.067137,
-    "hash": "a2fdf8bda1bf56419f302d0d5f28daf9"
+  "/Users/pranaysarkar/Desktop/FreelanceOS/tests/discoverCache.test.ts": {
+    "mtime": 1778536823.6365988,
+    "hash": "cdbb12175d0ed8dc4cc9603209247d6a"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.config.ts": {
     "mtime": 1776676155.6162395,
     "hash": "33531c9f3ba21f31ac03048af58f082e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/proxy.ts": {
+    "mtime": 1776676188.067137,
+    "hash": "a2fdf8bda1bf56419f302d0d5f28daf9"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/auth.ts": {
     "mtime": 1776676172.8618186,
     "hash": "e3744653a8975c7f66e76b992a7cae9b"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/layout.tsx": {
-    "mtime": 1776533459.310636,
-    "hash": "058a431d3123e51cb19315cd1d98bbfe"
+    "mtime": 1778417082.7529562,
+    "hash": "281c55d69203e9de739ae6c7ef035037"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/page.tsx": {
     "mtime": 1776651162.249733,
     "hash": "2ecfba47c5bfd082c247039bafffbe5c"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/pitch/route.ts": {
+    "mtime": 1778417674.3207922,
+    "hash": "f8a6a92569e3f3359d68f265ca6f4669"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/clients/route.ts": {
+    "mtime": 1778417655.999049,
+    "hash": "928de35c63dad465bd096fb1541f985c"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/discover/route.ts": {
+    "mtime": 1778544978.52702,
+    "hash": "ab43a0d6a30f7fce5ec88bc136c699d0"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/register/route.ts": {
     "mtime": 1776657037.087102,
@@ -46,6 +86,10 @@
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/auth/[...nextauth]/route.ts": {
     "mtime": 1776657018.801513,
     "hash": "835a923af49caabac19106f745ac0e3d"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/api/stats/route.ts": {
+    "mtime": 1778365087.1118872,
+    "hash": "9de2d3ff4b850e2a5e6caf4dbc092f50"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/layout.tsx": {
     "mtime": 1776657048.4751515,
@@ -58,6 +102,22 @@
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(auth)/login/page.tsx": {
     "mtime": 1776657139.0219536,
     "hash": "bd61eb58621d824bc5396452213f8eb1"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/layout.tsx": {
+    "mtime": 1778421041.8599195,
+    "hash": "c24b66acc200480e82024bee834d2481"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/clients/page.tsx": {
+    "mtime": 1778417665.8115473,
+    "hash": "9b3f91e96e77e78b8d000967078d2e06"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/discover/page.tsx": {
+    "mtime": 1778545164.9340315,
+    "hash": "01a6e5a1dc387a1ca2fd129f302c1126"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/app/(dashboard)/dashboard/page.tsx": {
+    "mtime": 1778414894.5495641,
+    "hash": "59240af85cfd3af7bd75e4563d49b899"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/SectionBadge.tsx": {
     "mtime": 1776116414.7692807,
@@ -104,8 +164,8 @@
     "hash": "e84238e6e3712d28ba5f76ba599ff895"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/ui/encrypted-text.tsx": {
-    "mtime": 1776532931.3922157,
-    "hash": "5ca0f4d8810bc10f6d1f98ba66f7cc36"
+    "mtime": 1778417687.1094763,
+    "hash": "d1b2325d9b9cc03b0237c35b2dd31793"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/sections/Hero.tsx": {
     "mtime": 1776535222.182032,
@@ -155,33 +215,81 @@
     "mtime": 1776547214.6756577,
     "hash": "05cf8148df5a19d94c639d1a52d31783"
   },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverFilters.tsx": {
+    "mtime": 1778545184.4828358,
+    "hash": "12bafba3e41a26f353c9198a02af2999"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverEmpty.tsx": {
+    "mtime": 1778544951.7253149,
+    "hash": "b4ec9d5671d8ea7d06345caffc88f1aa"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/ScoreRing.tsx": {
+    "mtime": 1778544951.5206053,
+    "hash": "6d3eec2eee581e12b83cee178cc396e5"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/SourceChip.tsx": {
+    "mtime": 1778544951.6228616,
+    "hash": "961e28ddbfb804accef0c95bb78d0dd1"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverRow.tsx": {
+    "mtime": 1778545346.8521645,
+    "hash": "be23702af0ee6c42e151ce4b8801e748"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/DiscoverLoading.tsx": {
+    "mtime": 1778544952.759148,
+    "hash": "1d730cd4ba6ee8ea11b757b35469cba6"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/BulkActionBar.tsx": {
+    "mtime": 1778545184.3520937,
+    "hash": "7865821f068828a6f3ef1f1f3afbe167"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/discover/GapBadge.tsx": {
+    "mtime": 1778545189.3940132,
+    "hash": "18a5be5a30f8d9353177fc904c7a7971"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/auth/AuthRightPanel.tsx": {
     "mtime": 1776657092.6797023,
     "hash": "197b4de46e3afe5d7e47cd2aabdf6ec2"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Navbar.tsx": {
-    "mtime": 1776655637.9630246,
-    "hash": "74040bd6f740268255d8eef9b78a9598"
+    "mtime": 1778365112.5775888,
+    "hash": "ad93a1b60e953afb32871b3fafea3eb8"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/TopBar.tsx": {
+    "mtime": 1778365168.2458737,
+    "hash": "fd1d2556b7d4ea722aae4a24e81e6d64"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Container.tsx": {
     "mtime": 1776111594.6836636,
     "hash": "6ab9d4bca5b984fc6e26e94a8a98b37e"
   },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/BottomNav.tsx": {
+    "mtime": 1778365242.6316867,
+    "hash": "8e3855b31f4870c39300da597b1b23e7"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/FloatingDock.tsx": {
-    "mtime": 1776547110.2583563,
-    "hash": "53ba96a3c75a297818430d96ce4afc19"
+    "mtime": 1778365138.6661701,
+    "hash": "0fb2ff705e692b4cef134c1ff5f63e18"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Footer.tsx": {
-    "mtime": 1776655866.6239793,
-    "hash": "90beeb46e200c37871a72583f1fc3014"
+    "mtime": 1778365130.252952,
+    "hash": "2e6ef133c44f3cc42ff60a839c171ff5"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/LandingShell.tsx": {
+    "mtime": 1778369207.3012905,
+    "hash": "a2c6d5eae234c43e70475a51b3167c03"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/layout/Sidebar.tsx": {
-    "mtime": 1776655663.8957229,
-    "hash": "ab76b46773820bbbbb6b830e83fa8428"
+    "mtime": 1778421027.5679798,
+    "hash": "5972e2c6317cc191c9c297ac13afdff0"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/components/anime/FreelancerCharacter.tsx": {
     "mtime": 1776116388.8265283,
     "hash": "f2959cd4c8f2c5c8a0ebe5792144908e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/hooks/useDiscoverKeyboard.ts": {
+    "mtime": 1778544951.9825094,
+    "hash": "bad7694e54880798fbfab0396983fc98"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/utils.ts": {
     "mtime": 1776189459.3440926,
@@ -191,17 +299,45 @@
     "mtime": 1776656970.5685503,
     "hash": "d7c426ab7d3c9a0f408754d4e4c71f3b"
   },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Pitch.ts": {
+    "mtime": 1778365020.8551464,
+    "hash": "140b7b462f606870407ab992b27eb677"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Deal.ts": {
+    "mtime": 1778365031.7995343,
+    "hash": "3a95ea380425ab720bf5248a24272b31"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Client.ts": {
+    "mtime": 1778417578.3728633,
+    "hash": "78f612ed9cd5bb64c385777fe78a02a2"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/Notification.ts": {
+    "mtime": 1778365041.2561016,
+    "hash": "808126d944a9abf96c16d8f874d28777"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/DiscoverCache.ts": {
+    "mtime": 1778544952.868719,
+    "hash": "55aa02660b6fe5e328f4406efc6a3ad9"
+  },
   "/Users/pranaysarkar/Desktop/FreelanceOS/src/lib/models/User.ts": {
     "mtime": 1776656988.2134144,
     "hash": "1afb8bbab13c27a0e9bb62249423a414"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/PROJECT_STATUS.md": {
+    "mtime": 1778362864.336488,
+    "hash": "0039ff46f7add22089421a09e7e9a62e"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/FREELANCEOS_DOCUMENTATION.md": {
+    "mtime": 1778363690.7192116,
+    "hash": "241625a8265ce63cb6f02de4dcfcd5a8"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/README.md": {
     "mtime": 1776075681.801454,
     "hash": "f15aaa42d5d299d091b1171097ea56ad"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/AGENTS.md": {
-    "mtime": 1776075681.8005242,
-    "hash": "9e09241799026ac05be315a2f0b50055"
+    "mtime": 1778362211.3157642,
+    "hash": "407b905a047b8f3c4879c7fc27df0450"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/PRD_FREELANCEOS.md": {
     "mtime": 1776092598.0,
@@ -212,8 +348,16 @@
     "hash": "d1bf94e6c1c959bc48c875b4d670856d"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/CLAUDE.md": {
-    "mtime": 1776092598.0,
-    "hash": "bbaff49e53ee896e0c93c1620df3902a"
+    "mtime": 1778362204.8365886,
+    "hash": "1f6f3671929b82ec816b5531db6500ba"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/docs/discovery_architecture.md": {
+    "mtime": 1778535757.747545,
+    "hash": "928cee9fb845f241a62fe76bd32fd6db"
+  },
+  "/Users/pranaysarkar/Desktop/FreelanceOS/docs/discovery_blueprint.md": {
+    "mtime": 1778544064.6789763,
+    "hash": "52a84d5b51c3510af16599bd6266f83b"
   },
   "/Users/pranaysarkar/Desktop/FreelanceOS/public/file.svg": {
     "mtime": 1776075698.222839,

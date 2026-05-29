@@ -1,496 +1,843 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Search, Globe, Share2, Video, Mail, Phone,
-  AtSign, ExternalLink, Check, ArrowRight, Terminal,
-  ChevronDown, Download, MapPin, ChevronRight, Briefcase, Activity, Target, Lock, Smartphone
-} from 'lucide-react'
+import { Terminal, X } from 'lucide-react'
 import { toast } from 'sonner'
 
-/* ─── types ──────────────────────────────────────── */
-interface Client {
-  id: string
-  businessName: string
-  industry: string
-  location: string
-  email: string
-  phone: string
-  website: string
-  websiteLive?: boolean
-  metaDescription?: string
-  socials: { instagram: string; linkedin: string; facebook: string }
-  detectedGaps: string[]
-  source: string
-  opportunityScore: number
-  rating?: number | null
-  reviewCount?: number | null
-  googleMapsUrl?: string
-  category?: string
+import { BulkActionBar } from '@/components/discover/BulkActionBar'
+import { DiscoverEmpty } from '@/components/discover/DiscoverEmpty'
+import { DiscoverFilters } from '@/components/discover/DiscoverFilters'
+import { DiscoverLoading } from '@/components/discover/DiscoverLoading'
+import {
+  DiscoverRow,
+  type Client,
+  type IntelStatus,
+  type LeadState,
+} from '@/components/discover/DiscoverRow'
+import { useDiscoverKeyboard } from '@/hooks/useDiscoverKeyboard'
+
+type Status = 'idle' | 'loading' | 'results' | 'error'
+type DiscoverMode = 'coverage' | 'priority' | 'gold' | 'role-match'
+type DiscoverSort = 'score' | 'newest' | 'contactability' | 'gold-first'
+
+interface PitchState {
+  loading: boolean
+  content: string | null
+  error: string | null
 }
 
-type SortKey = 'score' | 'reviews' | 'alpha'
-
-/* ─── helpers ────────────────────────────────────── */
-function parseQuery(q: string): { biz: string; loc: string } {
-  const match = q.match(/^(.+?)\s+in\s+(.+)$/i)
-  if (match) return { biz: match[1].trim(), loc: match[2].trim() }
-  return { biz: q.trim(), loc: '' }
+interface CacheMetrics {
+  cacheHits: number
+  apiCalls: number
+  savedCredits: number
 }
 
-function scoreLabel(s: number): { label: string; color: string; bg: string } {
-  if (s >= 85) return { label: 'HIGH', color: '#E5484D', bg: 'rgba(229,72,77,0.10)' }
-  if (s >= 60) return { label: 'MED',  color: '#F59E0B', bg: 'rgba(245,158,11,0.10)' }
-  return          { label: 'LOW',  color: 'rgba(255,255,255,0.3)', bg: 'rgba(255,255,255,0.05)' }
+const SEARCH_STORAGE_KEY = 'freelanceos_discover_state_v2'
+
+function getContactability(client: Client) {
+  let count = 0
+  if (client.website) count += 1
+  if (client.email) count += 1
+  if (client.phone) count += 1
+  if (client.socials.instagram) count += 1
+  if (client.socials.whatsapp || client.phone) count += 1
+  return count
 }
 
-const GAP_MAP: Record<string, { label: string; Icon: typeof Globe }> = {
-  'no-website': { label: 'NO WEBSITE', Icon: Globe   },
-  'no-social':  { label: 'NO SOCIAL',  Icon: Share2  },
-  'no-video':   { label: 'NO VIDEO',   Icon: Video   },
-  'no-ssl':     { label: 'NO SSL',     Icon: Lock    },
-  'no-mobile':  { label: 'NO MOBILE',  Icon: Smartphone },
+function isHiddenGold(client: Client) {
+  return (client.reviewCount ?? 0) >= 12 && client.detectedGaps.length >= 2 && client.opportunityScore >= 35
 }
 
-/* ─── page ───────────────────────────────────────── */
+function normalizeClient(client: Client): Client {
+  return {
+    ...client,
+    leadState: client.leadState ?? 'new',
+    intelStatus: client.intelStatus ?? 'light_scan',
+    sourceConfidence: client.sourceConfidence ?? 'scraped',
+    sourceOrigin: client.sourceOrigin ?? client.source ?? 'scraped',
+  }
+}
+
 export default function DiscoverPage() {
-  const [query, setQuery] = useState('')
-  const [status, setStatus] = useState<'idle'|'loading'|'results'|'error'>('idle')
+  const [businessType, setBusinessType] = useState('')
+  const [locality, setLocality] = useState('')
+  const [activePreset, setActivePreset] = useState<string | null>(null)
+  const [radius, setRadius] = useState('CITY')
+  const [mode, setMode] = useState<DiscoverMode>('coverage')
+  const [sort, setSort] = useState<DiscoverSort>('score')
+  const [showIgnored, setShowIgnored] = useState(false)
+
+  const [status, setStatus] = useState<Status>('idle')
   const [results, setResults] = useState<Client[]>([])
   const [errMsg, setErrMsg] = useState('')
+  const [errDetails, setErrDetails] = useState<string[]>([])
+  const [dataSource, setDataSource] = useState<string | undefined>(undefined)
+  const [offset, setOffset] = useState(0)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [cacheMetrics, setCacheMetrics] = useState<CacheMetrics | null>(null)
+
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [saved, setSaved] = useState<Set<string>>(new Set())
   const [savingId, setSavingId] = useState<string | null>(null)
-  const [expandedRow, setExpandedRow] = useState<string | null>(null)
-  
-  // Pitches
-  const [pitches, setPitches] = useState<Record<string, { loading: boolean; content: string | null; error: string | null }>>({})
-  
-  // Filters
-  const [sort, setSort] = useState<SortKey>('score')
-  const [gapFilters, setGapFilters] = useState<Set<string>>(new Set())
-  const [minScore, setMinScore] = useState<number>(0)
-  const [industryFilter, setIndustryFilter] = useState<string>('All')
+  const [pitches, setPitches] = useState<Record<string, PitchState>>({})
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set())
+  const [leadStates, setLeadStates] = useState<Record<string, LeadState>>({})
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [lastQuery, setLastQuery] = useState('')
+  const [isLoaded, setIsLoaded] = useState(false)
 
-  async function runSearch(q: string) {
-    const { biz, loc } = parseQuery(q)
-    if (!biz) return
-    setStatus('loading'); setResults([]); setErrMsg('')
-
+  useEffect(() => {
     try {
-      const res  = await fetch('/api/discover', {
+      const stored = localStorage.getItem(SEARCH_STORAGE_KEY)
+      if (!stored) {
+        setIsLoaded(true)
+        return
+      }
+
+      const parsed = JSON.parse(stored) as {
+        businessType?: string
+        locality?: string
+        activePreset?: string | null
+        radius?: string
+        mode?: DiscoverMode
+        sort?: DiscoverSort
+        showIgnored?: boolean
+        status?: Status
+        results?: Client[]
+        errMsg?: string
+        errDetails?: string[]
+        dataSource?: string
+        offset?: number
+        cacheMetrics?: CacheMetrics | null
+        expandedRow?: string | null
+        focusedRowId?: string | null
+        selectedIds?: string[]
+        saved?: string[]
+        pitches?: Record<string, PitchState>
+        seenIds?: string[]
+        leadStates?: Record<string, LeadState>
+        lastQuery?: string
+      }
+
+      setBusinessType(parsed.businessType ?? '')
+      setLocality(parsed.locality ?? '')
+      setActivePreset(parsed.activePreset ?? null)
+      setRadius(parsed.radius ?? 'CITY')
+      setMode(parsed.mode ?? 'coverage')
+      setSort(parsed.sort ?? 'score')
+      setShowIgnored(parsed.showIgnored ?? false)
+      setStatus(parsed.status && parsed.status !== 'loading' ? parsed.status : 'idle')
+      setResults((parsed.results ?? []).map(normalizeClient))
+      setErrMsg(parsed.errMsg ?? '')
+      setErrDetails(parsed.errDetails ?? [])
+      setDataSource(parsed.dataSource)
+      setOffset(parsed.offset ?? 0)
+      setCacheMetrics(parsed.cacheMetrics ?? null)
+      setExpandedRow(parsed.expandedRow ?? null)
+      setFocusedRowId(parsed.focusedRowId ?? null)
+      setSelectedIds(new Set(parsed.selectedIds ?? []))
+      setSaved(new Set(parsed.saved ?? []))
+      setPitches(parsed.pitches ?? {})
+      setSeenIds(new Set(parsed.seenIds ?? []))
+      setLeadStates(parsed.leadStates ?? {})
+      setLastQuery(parsed.lastQuery ?? '')
+    } catch {
+      // ignore corrupt local state and start clean
+    } finally {
+      setIsLoaded(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return
+    localStorage.setItem(
+      SEARCH_STORAGE_KEY,
+      JSON.stringify({
+        businessType,
+        locality,
+        activePreset,
+        radius,
+        mode,
+        sort,
+        showIgnored,
+        status: status === 'loading' ? 'idle' : status,
+        results,
+        errMsg,
+        errDetails,
+        dataSource,
+        offset,
+        cacheMetrics,
+        expandedRow,
+        focusedRowId,
+        selectedIds: Array.from(selectedIds),
+        saved: Array.from(saved),
+        pitches,
+        seenIds: Array.from(seenIds),
+        leadStates,
+        lastQuery,
+      })
+    )
+  }, [
+    activePreset,
+    businessType,
+    cacheMetrics,
+    dataSource,
+    errDetails,
+    errMsg,
+    expandedRow,
+    focusedRowId,
+    isLoaded,
+    lastQuery,
+    leadStates,
+    locality,
+    mode,
+    offset,
+    pitches,
+    radius,
+    results,
+    saved,
+    seenIds,
+    selectedIds,
+    showIgnored,
+    sort,
+    status,
+  ])
+
+  const orderedIds = useMemo(() => results.map((client) => client.id), [results])
+
+  const runSearch = useCallback(
+    async (loadMore = false) => {
+      const normalizedBusinessType = businessType.trim()
+      const normalizedLocality = locality.trim()
+      const query = normalizedBusinessType && normalizedLocality
+        ? `${normalizedBusinessType} in ${normalizedLocality}`
+        : normalizedBusinessType || normalizedLocality || lastQuery
+
+      if (!query.trim()) {
+        toast.error('Enter a business type and locality to scan')
+        return
+      }
+
+      const nextOffset = loadMore ? offset + 15 : 0
+      if (loadMore) {
+        setIsLoadingMore(true)
+      } else {
+        setStatus('loading')
+        setErrMsg('')
+        setErrDetails([])
+        setDataSource(undefined)
+        setCacheMetrics(null)
+        setExpandedRow(null)
+        setFocusedRowId(null)
+        setSelectedIds(new Set())
+        setOffset(0)
+      }
+
+      try {
+        const userPlan = (typeof window !== 'undefined' && localStorage.getItem('freelanceos_plan')) || 'free'
+        const response = await fetch('/api/discover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessType: normalizedBusinessType,
+            location: normalizedLocality,
+            query,
+            plan: userPlan,
+            seenIds: Array.from(seenIds),
+            actedIds: Array.from(saved),
+            offset: nextOffset,
+          }),
+        })
+
+        const data = (await response.json()) as {
+          error?: string
+          details?: string[]
+          clients?: Client[]
+          source?: string
+          metrics?: CacheMetrics
+        }
+
+        if (!response.ok || data.error) {
+          const message = data.error || 'Discovery failed'
+          if (loadMore) toast.error(message)
+          else {
+            setErrMsg(message)
+            setErrDetails(data.details ?? [])
+            setStatus('error')
+          }
+          return
+        }
+
+        const nextResults = (data.clients ?? []).map(normalizeClient)
+        setResults((current) => (loadMore ? [...current, ...nextResults] : nextResults))
+        setDataSource(data.source)
+        setCacheMetrics(data.metrics ?? null)
+        setOffset(nextOffset)
+        setStatus('results')
+        setLastQuery(query)
+
+        if (!loadMore) {
+          const firstId = nextResults[0]?.id ?? null
+          setFocusedRowId(firstId)
+          toast.success(`${nextResults.length} businesses found via ${(data.source ?? 'API').toUpperCase()}`)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Network error'
+        if (loadMore) toast.error(message)
+        else {
+          setErrMsg(message)
+          setStatus('error')
+        }
+      } finally {
+        setIsLoadingMore(false)
+      }
+    },
+    [businessType, lastQuery, locality, offset, saved, seenIds]
+  )
+
+  const markLeadSeen = useCallback((client: Client) => {
+    setSeenIds((current) => (current.has(client.id) ? current : new Set([...current, client.id])))
+    setLeadStates((current) => {
+      const state = current[client.id] ?? client.leadState
+      if (state && state !== 'new') return current
+      return { ...current, [client.id]: 'seen' }
+    })
+  }, [])
+
+  async function generatePitch(client: Client) {
+    markLeadSeen(client)
+    setPitches((current) => ({ ...current, [client.id]: { loading: true, content: null, error: null } }))
+    try {
+      const response = await fetch('/api/pitch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessType: biz, location: loc || 'United States' }),
+        body: JSON.stringify({ client }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Search failed')
-      setResults(data.clients ?? [])
-      setStatus('results')
-    } catch (err) {
-      setErrMsg(err instanceof Error ? err.message : 'Search failed')
-      setStatus('error')
+      const data = (await response.json()) as { pitch?: string; error?: string }
+      if (!response.ok || data.error) throw new Error(data.error || 'Pitch generation failed')
+      setPitches((current) => ({
+        ...current,
+        [client.id]: { loading: false, content: data.pitch ?? '', error: null },
+      }))
+      setExpandedRow(client.id)
+    } catch (error) {
+      setPitches((current) => ({
+        ...current,
+        [client.id]: {
+          loading: false,
+          content: null,
+          error: error instanceof Error ? error.message : 'Pitch generation failed',
+        },
+      }))
     }
   }
 
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') runSearch(query)
-  }
-
-  async function toggleSave(client: Client, e?: React.MouseEvent) {
-    e?.stopPropagation()
-    const id = client.id
-    if (saved.has(id)) return // Already saved
-    
-    setSavingId(id)
+  async function saveLead(client: Client) {
+    if (saved.has(client.id)) return
+    markLeadSeen(client)
+    setSavingId(client.id)
     try {
-      const res = await fetch('/api/clients', {
+      const response = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(client),
       })
-      if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || 'Failed to save')
-      }
-      setSaved(prev => { const n = new Set(prev); n.add(id); return n })
-      toast.success(`${client.businessName} saved to clients`)
-    } catch (err) {
-      console.error('Save error:', err)
-      toast.error(err instanceof Error ? err.message : 'Failed to save client')
+      if (!response.ok) throw new Error('Save failed')
+      setSaved((current) => new Set([...current, client.id]))
+      setLeadStates((current) => ({ ...current, [client.id]: 'saved' }))
+      toast.success(`${client.businessName} saved`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Save failed')
     } finally {
       setSavingId(null)
     }
   }
 
-  async function generatePitch(client: Client, e?: React.MouseEvent) {
-    e?.stopPropagation()
-    const id = client.id
-    
-    setPitches(prev => ({ ...prev, [id]: { loading: true, content: null, error: null } }))
-    
-    try {
-      const res = await fetch('/api/pitch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientData: client }),
+  function toggleIgnoreLead(client: Client) {
+    markLeadSeen(client)
+    // Use client.leadState from display (already merged) as the source of truth
+    const currentState = client.leadState
+    const isIgnored = currentState === 'ignored'
+
+    if (isIgnored) {
+      setLeadStates((prev) => ({ ...prev, [client.id]: 'seen' }))
+      toast.success(`${client.businessName} unignored`)
+    } else {
+      setLeadStates((prev) => ({ ...prev, [client.id]: 'ignored' }))
+      setSelectedIds((prev) => {
+        if (!prev.has(client.id)) return prev
+        const next = new Set(prev)
+        next.delete(client.id)
+        return next
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to generate pitch')
-      
-      setPitches(prev => ({ ...prev, [id]: { loading: false, content: data.pitch, error: null } }))
-      toast.success('Pitch generated successfully')
-    } catch (err) {
-      console.error('Pitch error:', err)
-      setPitches(prev => ({ ...prev, [id]: { loading: false, content: null, error: err instanceof Error ? err.message : 'Failed to generate' } }))
-      toast.error('Failed to generate pitch')
+      toast.success(`${client.businessName} marked ignored`)
     }
   }
-  
-  function toggleGapFilter(gap: string) {
-    setGapFilters(prev => {
-      const n = new Set(prev)
-      if (n.has(gap)) n.delete(gap)
-      else n.add(gap)
-      return n
+
+  function toggleSelect(client: Client) {
+    markLeadSeen(client)
+    setSelectedIds((current) => {
+      const next = new Set(current)
+      if (next.has(client.id)) next.delete(client.id)
+      else next.add(client.id)
+      return next
     })
   }
 
-  // extract unique industries/categories
-  const industries = useMemo(() => {
-    const set = new Set<string>()
-    results.forEach(r => {
-      const c = r.category || r.industry
-      if (c) set.add(c)
+  function handleBulkAction(action: 'save' | 'ignore' | 'queue' | 'tag') {
+    const selectedLeads = results.filter((client) => selectedIds.has(client.id))
+    if (selectedLeads.length === 0) return
+
+    if (action === 'save') {
+      void Promise.all(selectedLeads.map((client) => saveLead(client)))
+      return
+    }
+
+    if (action === 'ignore') {
+      setLeadStates(current => {
+        const next = { ...current }
+        selectedLeads.forEach(client => { next[client.id] = 'ignored' })
+        return next
+      })
+      setSelectedIds(new Set())
+      toast.success(`${selectedLeads.length} businesses marked ignored`)
+      return
+    }
+
+    if (action === 'queue') {
+      toast.message('Bulk queue is reserved for the outreach handoff phase.')
+      return
+    }
+
+    toast.message('Bulk tagging lands with the next discover operations phase.')
+  }
+
+  const display = useMemo(() => {
+    const decorated = results.map((client) => {
+      const merged: Client = {
+        ...client,
+        leadState: saved.has(client.id) ? 'saved' : leadStates[client.id] ?? client.leadState ?? 'new',
+        intelStatus: (client.intelStatus ?? 'light_scan') as IntelStatus,
+      }
+      return merged
     })
-    return ['All', ...Array.from(set).sort()]
-  }, [results])
 
-  const displayResults = useMemo(() => {
-    let list = [...results]
-    
-    // gap filter: client must have ALL selected gaps
-    if (gapFilters.size > 0) {
-      list = list.filter(c => Array.from(gapFilters).every(g => c.detectedGaps.includes(g)))
-    }
-    
-    // industry filter
-    if (industryFilter !== 'All') {
-      list = list.filter(c => (c.category || c.industry) === industryFilter)
-    }
-    
-    // score filter
-    if (minScore > 0) {
-      list = list.filter(c => c.opportunityScore >= minScore)
-    }
+    let list = decorated.filter((client) => (showIgnored ? true : client.leadState !== 'ignored'))
 
-    if (sort === 'score')   list.sort((a, b) => b.opportunityScore - a.opportunityScore)
-    else if (sort === 'reviews') list.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0))
-    else if (sort === 'alpha')   list.sort((a, b) => a.businessName.localeCompare(b.businessName))
+    if (mode === 'gold') list = list.filter(isHiddenGold)
+    if (mode === 'coverage') list = [...list].sort((a, b) => a.businessName.localeCompare(b.businessName))
+    if (mode === 'priority') list = [...list].sort((a, b) => b.opportunityScore - a.opportunityScore)
+    if (mode === 'role-match') list = [...list].sort((a, b) => getContactability(b) - getContactability(a))
+
+    if (sort === 'score') list = [...list].sort((a, b) => b.opportunityScore - a.opportunityScore)
+    if (sort === 'newest') list = [...list].sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id))
+    if (sort === 'contactability') list = [...list].sort((a, b) => getContactability(b) - getContactability(a))
+    if (sort === 'gold-first') {
+      list = [...list].sort((a, b) => Number(isHiddenGold(b)) - Number(isHiddenGold(a)) || b.opportunityScore - a.opportunityScore)
+    }
 
     return list
-  }, [results, sort, gapFilters, minScore, industryFilter])
+  }, [leadStates, mode, orderedIds, results, saved, showIgnored, sort])
 
-  const highOppCount = displayResults.filter(c => c.opportunityScore >= 80).length
+  const metrics = useMemo(() => {
+    const hiddenGoldCount = display.filter(isHiddenGold).length
+    const readyIntel = display.filter((client) => client.intelStatus === 'ready').length
+    const newCount = display.filter((client) => (client.leadState ?? 'new') === 'new').length
+    return {
+      found: display.length,
+      newCount,
+      cached: cacheMetrics?.cacheHits ?? 0,
+      hiddenGold: hiddenGoldCount,
+      intelReady: readyIntel,
+      apiSaved: cacheMetrics?.savedCredits ?? 0,
+    }
+  }, [cacheMetrics, display])
+
+  useDiscoverKeyboard({
+    orderedIds: display.map((client) => client.id),
+    focusedId: focusedRowId,
+    setFocusedId: setFocusedRowId,
+    onIntel: (id) => setExpandedRow((current) => (current === id ? null : id)),
+    onPitch: (id) => {
+      const client = results.find((entry) => entry.id === id)
+      if (client) void generatePitch(client)
+    },
+    onSave: (id) => {
+      const client = results.find((entry) => entry.id === id)
+      if (client) void saveLead(client)
+    },
+    onIgnore: (id) => {
+      const client = results.find((entry) => entry.id === id)
+      if (client) toggleIgnoreLead(client)
+    },
+    onSimilar: (id) => {
+      const client = results.find((entry) => entry.id === id)
+      if (client) toast.message(`Lookalike search for ${client.businessName} lands in Phase 6.`)
+    },
+    onToggleSelect: (id) => {
+      const client = results.find((entry) => entry.id === id)
+      if (client) toggleSelect(client)
+    },
+    onToggleHelp: () => setHelpOpen((current) => !current),
+    onEscape: () => {
+      if (helpOpen) {
+        setHelpOpen(false)
+        return
+      }
+      if (expandedRow) {
+        setExpandedRow(null)
+        return
+      }
+      if (selectedIds.size > 0) {
+        setSelectedIds(new Set())
+        return
+      }
+    },
+  })
 
   return (
     <>
       <style>{`
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-        .row-hover:hover { background: rgba(255,255,255,0.02); }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        /* Discover page — fits inside dashboard-content normal flow */
+        .discover-shell {
+          /* NOT fixed — sits in the dashboard's normal scrollable flow */
+          margin: -28px -32px -64px;
+          min-height: calc(100vh - 56px);
+          display: flex;
+          flex-direction: column;
+          background: var(--color-bg);
+        }
+        .discover-main {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
+        }
+        .discover-status-strip {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0;
+          border-bottom: 1px solid var(--color-border);
+          background: rgba(255,255,255,0.015);
+          overflow-x: auto;
+        }
+        .discover-status-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 16px;
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--color-text-muted);
+          border-right: 1px solid var(--color-border);
+          white-space: nowrap;
+          letter-spacing: -0.01em;
+        }
+        .discover-results {
+          /* Normal block flow — page itself scrolls */
+        }
+        .discover-help-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 200;
+        }
+        .discover-help-panel {
+          width: min(680px, calc(100% - 32px));
+          border: 1px solid var(--color-border-hover);
+          border-radius: 12px;
+          background: rgba(13,13,18,0.98);
+          box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+          overflow: hidden;
+        }
+        @media (max-width: 768px) {
+          .discover-shell {
+            margin: -16px -16px -80px;
+          }
+        }
       `}</style>
-      
-      <div style={{ display:'flex', height:'calc(100vh - 64px)', background:'#060608', fontFamily:'Inter, sans-serif' }}>
-        
-        {/* Left Panel */}
-        <div style={{ width:280, flexShrink:0, borderRight:'1px solid rgba(255,255,255,0.08)', display:'flex', flexDirection:'column', background:'#09090B' }}>
-          
-          {/* Search Box */}
-          <div style={{ padding:16, borderBottom:'1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ position:'relative', display:'flex', alignItems:'center' }}>
-              <Search size={14} style={{ position:'absolute', left:10, color:'rgba(255,255,255,0.4)' }} />
-              <input 
-                value={query} onChange={e => setQuery(e.target.value)} onKeyDown={handleKey}
-                placeholder="dentists in NYC..."
-                style={{ width:'100%', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:6, padding:'8px 10px 8px 30px', fontSize:13, color:'#fff', outline:'none' }}
-              />
-            </div>
-            <button onClick={() => runSearch(query)} disabled={status==='loading'}
-              style={{ width:'100%', marginTop:8, background:status==='loading'?'rgba(229,72,77,0.5)':'#E5484D', color:'#fff', border:'none', padding:'8px', borderRadius:6, fontSize:12, fontWeight:600, cursor:status==='loading'?'default':'pointer' }}>
-              {status === 'loading' ? 'Searching...' : 'Run Pipeline'}
-            </button>
-          </div>
 
-          {/* Filters */}
-          <div style={{ padding:16, flex:1, overflowY:'auto' }}>
-            <div style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.4)', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:16 }}>Pipeline Filters</div>
-            
-            <div style={{ marginBottom:24 }}>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,0.7)', marginBottom:8 }}>Required Gaps</div>
-              {['no-website', 'no-social', 'no-video', 'no-ssl', 'no-mobile'].map(gap => (
-                <label key={gap} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'rgba(255,255,255,0.5)', marginBottom:8, cursor:'pointer' }}>
-                  <input type="checkbox" checked={gapFilters.has(gap)} onChange={() => toggleGapFilter(gap)} style={{ accentColor:'#E5484D', cursor:'pointer' }} />
-                  {GAP_MAP[gap].label}
-                </label>
-              ))}
-            </div>
+      <div className="discover-shell">
+        <div className="discover-main">
+          <DiscoverFilters
+            businessType={businessType}
+            locality={locality}
+            onBusinessTypeChange={setBusinessType}
+            onLocalityChange={setLocality}
+            onSearch={() => void runSearch(false)}
+            loading={status === 'loading'}
+            activePreset={activePreset}
+            onPreset={(preset) => {
+              setActivePreset(preset)
+              setBusinessType(preset.toLowerCase())
+            }}
+            radius={radius}
+            onRadius={setRadius}
+            mode={mode}
+            onMode={setMode}
+            sort={sort}
+            onSort={setSort}
+            showIgnored={showIgnored}
+            onShowIgnored={setShowIgnored}
+            onToggleHelp={() => setHelpOpen((current) => !current)}
+          />
 
-            <div style={{ marginBottom:24 }}>
-              <div style={{ fontSize:12, color:'rgba(255,255,255,0.7)', marginBottom:8 }}>Industry</div>
-              <select value={industryFilter} onChange={e => setIndustryFilter(e.target.value)}
-                style={{ width:'100%', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:4, padding:'6px 8px', fontSize:12, color:'rgba(255,255,255,0.8)', outline:'none' }}>
-                {industries.map(ind => <option key={ind} value={ind} style={{background:'#0D0D12'}}>{ind}</option>)}
-              </select>
+          <div className="discover-status-strip">
+            <div className="discover-status-item" title="Total businesses found">
+              Found
+              <motion.strong key={`found-${metrics.found}`} initial={{ opacity: 0.3, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ color: '#fff', marginLeft: 4 }}>
+                {metrics.found}
+              </motion.strong>
             </div>
-
-            <div style={{ marginBottom:24 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'rgba(255,255,255,0.7)', marginBottom:8 }}>
-                <span>Min Opp Score</span>
-                <span>{minScore}+</span>
-              </div>
-              <input type="range" min="0" max="100" step="5" value={minScore} onChange={e => setMinScore(parseInt(e.target.value))}
-                style={{ width:'100%', accentColor:'#E5484D', cursor:'pointer' }} />
+            <div className="discover-status-item" title="Not yet reviewed">
+              New
+              <motion.strong key={`new-${metrics.newCount}`} initial={{ opacity: 0.3, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ color: metrics.newCount > 0 ? '#00C9A7' : 'rgba(255,255,255,0.5)', marginLeft: 4 }}>
+                {metrics.newCount}
+              </motion.strong>
             </div>
-          </div>
-
-          {/* Stats */}
-          <div style={{ padding:16, borderTop:'1px solid rgba(255,255,255,0.08)', background:'rgba(0,0,0,0.2)' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-              <Activity size={14} color="rgba(255,255,255,0.4)" />
-              <span style={{ fontSize:12, color:'rgba(255,255,255,0.8)' }}>{displayResults.length} leads in view</span>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <Target size={14} color="#E5484D" />
-              <span style={{ fontSize:12, color:'rgba(255,255,255,0.6)' }}>{highOppCount} high priority</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
-          
-          {/* Top Bar */}
-          <div style={{ height:48, borderBottom:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', padding:'0 24px', gap:16, background:'#060608', zIndex:10 }}>
-            <span style={{ fontSize:13, fontWeight:500, color:'#FAFAFA' }}>Discovery Pipeline</span>
-            <div style={{ width:1, height:16, background:'rgba(255,255,255,0.1)' }} />
-            <select value={sort} onChange={e => setSort(e.target.value as SortKey)}
-              style={{ background:'transparent', border:'none', color:'rgba(255,255,255,0.5)', fontSize:12, outline:'none', cursor:'pointer' }}>
-              <option value="score" style={{background:'#0D0D12'}}>Sort: Score</option>
-              <option value="reviews" style={{background:'#0D0D12'}}>Sort: Reviews</option>
-              <option value="alpha" style={{background:'#0D0D12'}}>Sort: Alpha</option>
-            </select>
-          </div>
-
-          {/* Table Container */}
-          <div style={{ flex:1, overflow:'auto' }}>
-            
-            {status === 'idle' && (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', color:'rgba(255,255,255,0.3)' }}>
-                <Terminal size={32} style={{ marginBottom:16, opacity:0.5 }} />
-                <div style={{ fontSize:13, fontFamily:"'JetBrains Mono',monospace" }}>Awaiting pipeline query...</div>
+            {metrics.cached > 0 && (
+              <div className="discover-status-item" title="Loaded from cache">
+                Cached
+                <motion.strong key={`cached-${metrics.cached}`} initial={{ opacity: 0.3, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ color: 'rgba(255,255,255,0.35)', marginLeft: 4 }}>
+                  {metrics.cached}
+                </motion.strong>
               </div>
             )}
+            {metrics.hiddenGold > 0 && (
+              <div className="discover-status-item" title="High review count + multiple gaps = hidden opportunity">
+                Gold
+                <motion.strong key={`gold-${metrics.hiddenGold}`} initial={{ opacity: 0.3, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ color: '#F59E0B', marginLeft: 4 }}>
+                  {metrics.hiddenGold}
+                </motion.strong>
+              </div>
+            )}
+            {metrics.intelReady > 0 && (
+              <div className="discover-status-item" title="Intel fully loaded">
+                Ready
+                <motion.strong key={`ready-${metrics.intelReady}`} initial={{ opacity: 0.3, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ color: '#00C9A7', marginLeft: 4 }}>
+                  {metrics.intelReady}
+                </motion.strong>
+              </div>
+            )}
+            {metrics.apiSaved > 0 && (
+              <div className="discover-status-item" title="API credits saved via cache">
+                Saved
+                <motion.strong style={{ color: 'rgba(255,255,255,0.35)', marginLeft: 4 }}>
+                  {metrics.apiSaved}
+                </motion.strong>
+              </div>
+            )}
+            {lastQuery && (
+              <div className="discover-status-item" style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(255,255,255,0.2)', borderRight: 'none' }}>
+                Last: <strong style={{ color: 'rgba(255,255,255,0.4)', marginLeft: 4 }}>{lastQuery}</strong>
+              </div>
+            )}
+          </div>
 
-            {status === 'loading' && (
-              <div style={{ padding:24 }}>
-                <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:12, color:'rgba(255,255,255,0.4)', display:'flex', flexDirection:'column', gap:8 }}>
-                  <div>&gt; Connecting to remote data sources...</div>
-                  <div>&gt; Extracting maps data...</div>
-                  <div>&gt; Checking website HEAD status...<span style={{ animation:'blink 1s step-end infinite' }}>_</span></div>
+          <div>
+            <div className="discover-results" style={{ paddingTop: 12 }}>
+              {status === 'idle' && (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  minHeight: 360, gap: 16, padding: 48,
+                }}>
+                  <motion.div animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 2.5 }}>
+                    <Terminal size={32} color="var(--color-text-muted)" />
+                  </motion.div>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', margin: 0 }}>
+                    Find your next client
+                  </p>
+                  <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
+                    Enter a business type and location above, then click Scan.
+                  </p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {status === 'error' && (
-              <div style={{ padding:24, color:'#E5484D', fontSize:13, fontFamily:"'JetBrains Mono',monospace" }}>
-                Error: {errMsg}
-              </div>
-            )}
+              {status === 'loading' && <DiscoverLoading />}
 
-            {status === 'results' && (
-              <div style={{ minWidth: 800 }}>
-                {/* Table Header */}
-                <div style={{ display:'grid', gridTemplateColumns:'2fr 1.5fr 1fr 60px 1.5fr 100px', padding:'12px 24px', borderBottom:'1px solid rgba(255,255,255,0.08)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.4)', textTransform:'uppercase', letterSpacing:'0.05em', position:'sticky', top:0, background:'#060608', zIndex:5 }}>
-                  <div>Business</div>
-                  <div>Location</div>
-                  <div>Gaps</div>
-                  <div>Score</div>
-                  <div>Contact</div>
-                  <div style={{ textAlign:'right' }}>Actions</div>
+              {status === 'error' && (
+                <div style={{ padding: 28 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-accent)', marginBottom: 8 }}>Search failed</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 12 }}>{errMsg}</div>
+                  {errDetails.map((detail) => (
+                    <div key={detail} style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 4 }}>
+                      {detail}
+                    </div>
+                  ))}
                 </div>
+              )}
 
-                {/* Rows */}
-                {displayResults.length === 0 ? (
-                  <div style={{ padding:24, textAlign:'center', color:'rgba(255,255,255,0.3)', fontSize:13 }}>No businesses match filters.</div>
-                ) : (
-                  displayResults.map(client => {
-                    const isExpanded = expandedRow === client.id;
-                    const sc = scoreLabel(client.opportunityScore)
-                    
-                    return (
-                      <div key={client.id} style={{ borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
-                        {/* Main Row */}
-                        <div className="row-hover" onClick={() => setExpandedRow(isExpanded ? null : client.id)}
-                          style={{ display:'grid', gridTemplateColumns:'2fr 1.5fr 1fr 60px 1.5fr 100px', padding:'12px 24px', alignItems:'center', cursor:'pointer', transition:'background 0.1s', background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
-                          
-                          {/* Business */}
-                          <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0, paddingRight:16 }}>
-                            <ChevronRight size={14} style={{ color:'rgba(255,255,255,0.3)', transform: isExpanded ? 'rotate(90deg)' : 'none', transition:'transform 0.2s', flexShrink:0 }} />
-                            <div style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontSize:13, fontWeight:500, color:'#FAFAFA' }}>
-                              {client.businessName}
-                            </div>
-                          </div>
+              {status === 'results' && display.length === 0 && (
+                <DiscoverEmpty
+                  locality={locality}
+                  onPreset={(preset) => {
+                    setActivePreset(preset)
+                    setBusinessType(preset.toLowerCase())
+                  }}
+                />
+              )}
 
-                          {/* Location */}
-                          <div style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontSize:12, color:'rgba(255,255,255,0.5)', paddingRight:16 }}>
-                            {client.location}
-                          </div>
+              {status === 'results' &&
+                display.map((client, index) => (
+                  <DiscoverRow
+                    key={client.id}
+                    client={client}
+                    localLeadState={client.leadState}
+                    index={index}
+                    expanded={expandedRow === client.id}
+                    focused={focusedRowId === client.id}
+                    selected={selectedIds.has(client.id)}
+                    onToggle={() => setExpandedRow((current) => (current === client.id ? null : client.id))}
+                    onIntel={() => setExpandedRow((current) => (current === client.id ? null : client.id))}
+                    onSave={() => void saveLead(client)}
+                    onIgnore={() => toggleIgnoreLead(client)}
+                    onPitch={() => void generatePitch(client)}
+                    onSimilar={() => toast.message(`Lookalike search for ${client.businessName} lands in Phase 6.`)}
+                    onToggleSelect={() => toggleSelect(client)}
+                    onHover={(client) => markLeadSeen(client)}
+                    onSeen={markLeadSeen}
+                    pitch={pitches[client.id]}
+                  />
+                ))}
 
-                          {/* Gaps */}
-                          <div style={{ display:'flex', gap:4, paddingRight:16 }}>
-                            {client.detectedGaps.slice(0,2).map(g => (
-                              <div key={g} title={GAP_MAP[g]?.label} style={{ width:16, height:16, borderRadius:4, background:'rgba(229,72,77,0.1)', display:'flex', alignItems:'center', justifyContent:'center', color:'#E5484D' }}>
-                                {GAP_MAP[g] && (() => { const Icon = GAP_MAP[g].Icon; return <Icon size={10} />; })()}
-                              </div>
-                            ))}
-                            {client.detectedGaps.length > 2 && (
-                              <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center' }}>+{client.detectedGaps.length-2}</div>
-                            )}
-                          </div>
+              {status === 'results' && display.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0 56px', gap: 12 }}>
+                  <motion.button
+                    type="button"
+                    onClick={() => void runSearch(true)}
+                    disabled={isLoadingMore}
+                    whileHover={!isLoadingMore ? { scale: 1.03, y: -3 } : {}}
+                    whileTap={!isLoadingMore ? { scale: 0.97 } : {}}
+                    style={{
+                      position: 'relative', overflow: 'hidden',
+                      padding: '0 36px', height: 52, borderRadius: 26,
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: isLoadingMore
+                        ? 'rgba(255,255,255,0.03)'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%)',
+                      color: isLoadingMore ? 'rgba(255,255,255,0.3)' : '#fff',
+                      fontSize: 14, fontWeight: 700, letterSpacing: '0.03em',
+                      cursor: isLoadingMore ? 'default' : 'pointer',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: isLoadingMore ? 'none' : '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
+                      transition: 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                    }}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+                          style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(255,255,255,0.15)', borderTopColor: 'rgba(255,255,255,0.5)', borderRadius: '50%' }}
+                        />
+                        Scanning the web…
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: 16 }}>⟳</span>
+                        Load Deeper Results
+                      </>
+                    )}
+                  </motion.button>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.04em' }}>
+                    Searches {display.length} results deep across all sources
+                  </span>
+                </div>
+              )}
+            </div>
 
-                          {/* Score */}
-                          <div style={{ fontSize:12, fontWeight:600, color:sc.color }}>
-                            {client.opportunityScore}
-                          </div>
-
-                          {/* Contact quick */}
-                          <div style={{ display:'flex', gap:10, color:'rgba(255,255,255,0.3)', paddingRight:16 }}>
-                            {client.website && <Globe size={13} color={client.websiteLive === false ? '#E5484D' : client.websiteLive === true ? '#10B981' : 'currentColor'} />}
-                            {client.email && <Mail size={13} />}
-                            {client.phone && <Phone size={13} />}
-                          </div>
-
-                          {/* Actions */}
-                          <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                            <button onClick={e => { e.stopPropagation(); setExpandedRow(client.id); generatePitch(client, e); }}
-                              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', color:'#fff', padding:'4px 10px', borderRadius:4, fontSize:11, fontWeight:500, cursor:'pointer', transition:'background 0.15s' }}
-                              onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.1)'} onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.06)'}>
-                              Pitch
-                            </button>
-                          </div>
+            <AnimatePresence>
+              {helpOpen && (
+                <motion.div
+                  className="discover-help-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <motion.div
+                    className="discover-help-panel"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 12 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '16px 20px', borderBottom: '1px solid var(--color-border)',
+                    }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-primary)' }}>Keyboard shortcuts</span>
+                      <button
+                        type="button"
+                        onClick={() => setHelpOpen(false)}
+                        style={{
+                          border: '1px solid var(--color-border)', background: 'transparent',
+                          color: 'var(--color-text-secondary)', width: 32, height: 32,
+                          borderRadius: 6, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div style={{
+                      padding: '20px',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                      gap: 10,
+                      fontSize: 13,
+                      color: 'var(--color-text-secondary)',
+                    }}>
+                      {[
+                        ['J', 'Focus next lead'],
+                        ['K', 'Focus previous lead'],
+                        ['I', 'Open intel panel'],
+                        ['P', 'Generate pitch'],
+                        ['S', 'Save lead'],
+                        ['X', 'Ignore lead'],
+                        ['F', 'Find similar'],
+                        ['Space', 'Toggle selection'],
+                        ['Esc', 'Close panels / clear'],
+                        ['?', 'Toggle this sheet'],
+                      ].map(([key, label]) => (
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span style={{
+                            minWidth: 52, padding: '6px 10px',
+                            borderRadius: 5,
+                            border: '1px solid var(--color-border)',
+                            background: 'rgba(255,255,255,0.04)',
+                            color: 'var(--color-text-primary)',
+                            textAlign: 'center', fontSize: 12, fontWeight: 500,
+                          }}>
+                            {key}
+                          </span>
+                          <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
                         </div>
-
-                        {/* Expanded Section */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }} exit={{ height:0, opacity:0 }} style={{ overflow:'hidden' }}>
-                              <div style={{ padding:'20px 24px 24px 58px', background:'rgba(0,0,0,0.2)', borderTop:'1px solid rgba(255,255,255,0.02)', display:'flex', gap:48 }}>
-                                
-                                <div style={{ flex:1 }}>
-                                  <div style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', marginBottom:12, letterSpacing:'0.05em' }}>Contact Data</div>
-                                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                                    {client.website && (
-                                      <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12 }}>
-                                        <Globe size={13} color="rgba(255,255,255,0.4)" />
-                                        <a href={client.website} target="_blank" rel="noreferrer" style={{ color:'#60A5FA', textDecoration:'none' }}>{client.website}</a>
-                                        {client.websiteLive === false && <span style={{ fontSize:10, color:'#E5484D', background:'rgba(229,72,77,0.1)', padding:'2px 6px', borderRadius:4 }}>DEAD LINK</span>}
-                                      </div>
-                                    )}
-                                    {client.email && (
-                                      <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12 }}>
-                                        <Mail size={13} color="rgba(255,255,255,0.4)" />
-                                        <a href={`mailto:${client.email}`} style={{ color:'#FAFAFA', textDecoration:'none' }}>{client.email}</a>
-                                      </div>
-                                    )}
-                                    {client.phone && (
-                                      <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12 }}>
-                                        <Phone size={13} color="rgba(255,255,255,0.4)" />
-                                        <a href={`tel:${client.phone}`} style={{ color:'#FAFAFA', textDecoration:'none' }}>{client.phone}</a>
-                                      </div>
-                                    )}
-                                    {client.location && (
-                                      <div style={{ display:'flex', alignItems:'center', gap:10, fontSize:12 }}>
-                                        <MapPin size={13} color="rgba(255,255,255,0.4)" />
-                                        <span style={{ color:'rgba(255,255,255,0.7)' }}>{client.location}</span>
-                                        {client.googleMapsUrl && <a href={client.googleMapsUrl} target="_blank" rel="noreferrer" style={{ color:'#60A5FA', fontSize:11, marginLeft:4, textDecoration:'none' }}>Map ↗</a>}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Socials */}
-                                  {(client.socials.instagram || client.socials.facebook || client.socials.linkedin) && (
-                                    <div style={{ marginTop:16, display:'flex', gap:16 }}>
-                                      {client.socials.instagram && <a href={client.socials.instagram} target="_blank" rel="noreferrer" style={{ fontSize:12, color:'#FAFAFA', display:'flex', alignItems:'center', gap:6, textDecoration:'none' }}><AtSign size={13} color="#E5484D" /> IG</a>}
-                                      {client.socials.linkedin && <a href={client.socials.linkedin} target="_blank" rel="noreferrer" style={{ fontSize:12, color:'#FAFAFA', display:'flex', alignItems:'center', gap:6, textDecoration:'none' }}><ExternalLink size={13} color="#3B82F6" /> IN</a>}
-                                      {client.socials.facebook && <a href={client.socials.facebook} target="_blank" rel="noreferrer" style={{ fontSize:12, color:'#FAFAFA', display:'flex', alignItems:'center', gap:6, textDecoration:'none' }}><Share2 size={13} color="#3B82F6" /> FB</a>}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div style={{ flex:1 }}>
-                                  <div style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.3)', textTransform:'uppercase', marginBottom:12, letterSpacing:'0.05em' }}>Insights</div>
-                                  {client.metaDescription && (
-                                    <div style={{ fontSize:12, color:'rgba(255,255,255,0.6)', lineHeight:1.5, marginBottom:16, fontStyle:'italic' }}>
-                                      "{client.metaDescription}"
-                                    </div>
-                                  )}
-                                  <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                                    {client.detectedGaps.map(gap => (
-                                      <span key={gap} style={{ fontSize:10, color:'#E5484D', border:'1px solid rgba(229,72,77,0.3)', background:'rgba(229,72,77,0.05)', padding:'2px 6px', borderRadius:4 }}>
-                                        {GAP_MAP[gap]?.label || gap}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div style={{ width:180, display:'flex', flexDirection:'column', gap:10 }}>
-                                  <button onClick={(e) => generatePitch(client, e)} disabled={pitches[client.id]?.loading} style={{ width:'100%', padding:'10px', background:'#E5484D', color:'#fff', border:'none', borderRadius:6, fontSize:12, fontWeight:600, cursor:pitches[client.id]?.loading ? 'default' : 'pointer', transition:'opacity 0.15s', opacity: pitches[client.id]?.loading ? 0.7 : 1 }} onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>{if(!pitches[client.id]?.loading)e.currentTarget.style.opacity='1'}}>
-                                    {pitches[client.id]?.loading ? 'Generating...' : 'Generate Pitch'}
-                                  </button>
-                                  <button onClick={e => toggleSave(client, e)} disabled={savingId === client.id || saved.has(client.id)} style={{ width:'100%', padding:'10px', background:'transparent', border:`1px solid ${saved.has(client.id) ? '#10B981' : 'rgba(255,255,255,0.2)'}`, color:saved.has(client.id) ? '#10B981' : '#fff', borderRadius:6, fontSize:12, fontWeight:500, cursor:(savingId === client.id || saved.has(client.id)) ? 'default' : 'pointer', transition:'all 0.15s', opacity: savingId === client.id ? 0.5 : 1 }} onMouseEnter={e=>{if(!saved.has(client.id) && savingId !== client.id)e.currentTarget.style.borderColor='rgba(255,255,255,0.4)'}} onMouseLeave={e=>{if(!saved.has(client.id) && savingId !== client.id)e.currentTarget.style.borderColor='rgba(255,255,255,0.2)'}}>
-                                    {savingId === client.id ? 'Saving...' : saved.has(client.id) ? 'Saved to Clients' : 'Save to Clients'}
-                                  </button>
-                                </div>
-
-                              </div>
-                              
-                              {/* Pitch Display Area */}
-                              {pitches[client.id] && (pitches[client.id].content || pitches[client.id].error) && (
-                                <div style={{ padding:'0 24px 24px 58px', background:'rgba(0,0,0,0.2)' }}>
-                                  <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8 }}>
-                                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-                                      <div style={{ fontSize:11, fontWeight:600, color:'#E5484D', textTransform:'uppercase', letterSpacing:'0.05em' }}>AI Generated Pitch</div>
-                                      {pitches[client.id].content && (
-                                        <button onClick={() => { navigator.clipboard.writeText(pitches[client.id].content!); toast.success('Pitch copied to clipboard'); }} style={{ background:'transparent', border:'1px solid rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.6)', padding:'4px 8px', borderRadius:4, fontSize:10, cursor:'pointer' }}>
-                                          Copy text
-                                        </button>
-                                      )}
-                                    </div>
-                                    {pitches[client.id].error ? (
-                                      <div style={{ fontSize: 12, color: '#E5484D' }}>{pitches[client.id].error}</div>
-                                    ) : (
-                                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                                        {pitches[client.id].content}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            )}
+                      ))}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
+
+        <BulkActionBar
+          count={selectedIds.size}
+          onAction={handleBulkAction}
+          onClear={() => setSelectedIds(new Set())}
+        />
       </div>
     </>
   )
