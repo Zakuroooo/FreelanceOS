@@ -9,10 +9,8 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="dashboard-wrapper">
-      <div className="sidebar-container">
-        <Sidebar />
-      </div>
-      
+      <Sidebar />
+
       <div className="dashboard-main">
         <TopBar />
         <main className="dashboard-content">
@@ -31,30 +29,25 @@ export default function DashboardLayout({
 
         .dashboard-main {
           flex: 1;
-          margin-left: 220px;
+          margin-left: 60px;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
+          transition: none;
         }
 
         .dashboard-content {
           flex: 1;
-          padding: 32px;
-          padding-bottom: 64px; /* Default bottom padding */
+          padding: 28px 32px 64px;
         }
 
         @media (max-width: 768px) {
-          .sidebar-container {
-            display: none !important;
-          }
-          
           .dashboard-main {
             margin-left: 0;
           }
-          
           .dashboard-content {
             padding: 16px;
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 80px;
           }
         }
       `}</style>

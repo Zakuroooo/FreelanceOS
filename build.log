@@ -1,0 +1,285 @@
+
+> temp_app@0.1.0 build
+> next build
+
+▲ Next.js 16.2.3 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+(node:74736) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/pranaysarkar/Desktop/FreelanceOS/tailwind.config.ts?id=1778439294778 is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/pranaysarkar/Desktop/FreelanceOS/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> Build error occurred
+Error: Turbopack build failed with 10 errors:
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Facebook doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Facebook was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-client] (ecmascript).
+Did you mean to import Webhook?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Facebook doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Facebook was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-ssr] (ecmascript).
+Did you mean to import Webhook?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Instagram doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Instagram was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-client] (ecmascript).
+Did you mean to import Star?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Instagram doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Instagram was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-ssr] (ecmascript).
+Did you mean to import Star?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Linkedin doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Linkedin was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-client] (ecmascript).
+Did you mean to import Link?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Linkedin doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Linkedin was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-ssr] (ecmascript).
+Did you mean to import Link?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Twitter doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Twitter was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-client] (ecmascript).
+Did you mean to import Timer?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Twitter doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Twitter was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-ssr] (ecmascript).
+Did you mean to import Timer?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Youtube doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Youtube was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-client] (ecmascript).
+Did you mean to import Route?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+./src/components/discover/DiscoverRow.tsx:3:1
+Export Youtube doesn't exist in target module
+  [90m1 |[0m ...
+  [90m2 |[0m ...[32mon'[0m
+[31m[1m>[0m [90m3 |[0m ...[33mlLink[0m, [33mShare2[0m, [33mCheck[0m, [33mChevronRight[0m, [33mInstagram[0m, [33mFacebook[0m, [33mLinkedin[0m, [33mM...[0m
+  [90m  |[0m    [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m4 |[0m ...
+  [90m5 |[0m ...
+  [90m6 |[0m ...
+
+The export Youtube was not found in module [project]/node_modules/lucide-react/dist/esm/lucide-react.mjs [app-ssr] (ecmascript).
+Did you mean to import Route?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./src/components/discover/DiscoverRow.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component Browser]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/discover/DiscoverRow.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Client Component SSR]
+    ./src/app/(dashboard)/discover/page.tsx [Server Component]
+
+
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
+    at <unknown> (./src/components/discover/DiscoverRow.tsx:3:1)
