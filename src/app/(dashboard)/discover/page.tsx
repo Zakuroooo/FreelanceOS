@@ -15,6 +15,7 @@ import {
   type IntelStatus,
   type LeadState,
 } from '@/components/discover/DiscoverRow'
+import { IntelDrawer } from '@/components/discover/IntelDrawer'
 import { useDiscoverKeyboard } from '@/hooks/useDiscoverKeyboard'
 
 type Status = 'idle' | 'loading' | 'results' | 'error'
@@ -78,6 +79,7 @@ export default function DiscoverPage() {
   const [cacheMetrics, setCacheMetrics] = useState<CacheMetrics | null>(null)
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [intelDrawerClient, setIntelDrawerClient] = useState<Client | null>(null)
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [saved, setSaved] = useState<Set<string>>(new Set())
@@ -700,7 +702,7 @@ export default function DiscoverPage() {
                     focused={focusedRowId === client.id}
                     selected={selectedIds.has(client.id)}
                     onToggle={() => setExpandedRow((current) => (current === client.id ? null : client.id))}
-                    onIntel={() => setExpandedRow((current) => (current === client.id ? null : client.id))}
+                    onIntel={() => setIntelDrawerClient(client)}
                     onSave={() => void saveLead(client)}
                     onIgnore={() => toggleIgnoreLead(client)}
                     onPitch={() => void generatePitch(client)}
