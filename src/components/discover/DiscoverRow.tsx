@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, MapPin, Star, ExternalLink, AlertTriangle, Check, ArrowRight } from 'lucide-react'
+import { ChevronDown, MapPin, Star, ExternalLink, AlertTriangle, Check, ArrowRight, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { ScoreRing } from './ScoreRing'
 
@@ -419,11 +419,21 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
                 {/* Intel / Pitch */}
                 <div>
                   <div style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Intel</div>
-                  {client.metaDescription && (
+                  
+                  {client.metaDescription ? (
                     <p style={{ fontSize: 11, lineHeight: 1.55, color: 'rgba(255,255,255,0.4)', margin: '0 0 12px', fontStyle: 'italic' }}>
                       {client.metaDescription}
                     </p>
+                  ) : (
+                    <div style={{ background: 'rgba(0,201,167,0.05)', border: '1px solid rgba(0,201,167,0.1)', borderRadius: 4, padding: '10px 12px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <Zap size={14} color="#00C9A7" />
+                      <div>
+                        <div style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: '#00C9A7', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Unlock Deep Intel</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Click the <strong>Intel</strong> button above to scrape this website and generate a comprehensive AI profile, read gaps, and evaluate readiness.</div>
+                      </div>
+                    </div>
                   )}
+
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>AI Pitch</span>
                     {pitch?.content && (
