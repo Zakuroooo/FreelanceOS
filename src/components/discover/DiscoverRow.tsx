@@ -252,46 +252,50 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
           </button>
 
           {/* Main info */}
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>
-              {client.businessName}
-            </span>
-
-            {/* Lead state — hidden for new/seen, visible for actioned states */}
-            {leadState !== 'new' && leadState !== 'seen' && (
-              <span style={{ padding: '1px 6px', fontSize: 9, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.07em', textTransform: 'uppercase', color: stateStyle.text, flexShrink: 0 }}>
-                {stateStyle.label}
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 5, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 260 }}>
+                {client.businessName}
               </span>
-            )}
 
-            {/* Good fit — no box, just colored text */}
-            {isGoodFit && (
-              <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(16,185,129,0.75)', letterSpacing: '0.06em' }}>✓ FIT</span>
-            )}
+              {/* Lead state — hidden for new/seen, visible for actioned states */}
+              {leadState !== 'new' && leadState !== 'seen' && (
+                <span style={{ padding: '1px 6px', fontSize: 9, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '0.07em', textTransform: 'uppercase', color: stateStyle.text, flexShrink: 0 }}>
+                  {stateStyle.label}
+                </span>
+              )}
 
-            {/* Source confidence — dot + text, no border */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: confColor, letterSpacing: '0.04em', opacity: 0.8 }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: confColor, display: 'inline-block', flexShrink: 0 }} />
-              {confLabel}
-            </span>
+              {/* Good fit — no box, just colored text */}
+              {isGoodFit && (
+                <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(16,185,129,0.75)', letterSpacing: '0.06em', flexShrink: 0 }}>✓ FIT</span>
+              )}
 
-            {client.rating != null && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 600, color: 'rgb(251,191,36)', fontFamily: "'JetBrains Mono',monospace" }}>
-                <Star size={9} fill="currentColor" />
-                {client.rating.toFixed(1)}
-                <span style={{ color: 'rgba(251,191,36,0.4)', fontWeight: 400 }}>({client.reviewCount})</span>
+              {/* Source confidence — dot + text, no border */}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: confColor, letterSpacing: '0.04em', opacity: 0.8, flexShrink: 0 }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: confColor, display: 'inline-block', flexShrink: 0 }} />
+                {confLabel}
               </span>
-            )}
+            </div>
 
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>
-              {client.category || client.industry}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden', whiteSpace: 'nowrap' }}>
+              {client.rating != null && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, fontWeight: 600, color: 'rgb(251,191,36)', fontFamily: "'JetBrains Mono',monospace" }}>
+                  <Star size={9} fill="currentColor" />
+                  {client.rating.toFixed(1)}
+                  <span style={{ color: 'rgba(251,191,36,0.4)', fontWeight: 400 }}>({client.reviewCount})</span>
+                </span>
+              )}
 
-            {client.location && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'rgba(255,255,255,0.22)' }}>
-                <MapPin size={9} />{shortLocation(client.location)}
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {client.category || client.industry}
               </span>
-            )}
+
+              {client.location && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'rgba(255,255,255,0.22)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <MapPin size={9} flexShrink={0} />{shortLocation(client.location)}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Gap chips */}
