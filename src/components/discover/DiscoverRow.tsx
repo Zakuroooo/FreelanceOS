@@ -437,21 +437,36 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase' }}>AI Pitch</span>
                     {pitch?.content && (
-                      <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(pitch.content!); toast.success('Copied') }}
-                        style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        Copy
-                      </button>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={e => { e.stopPropagation(); navigator.clipboard.writeText(pitch.content!); toast.success('Copied') }}
+                          style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.3)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                          Copy
+                        </button>
+                        <button onClick={e => { e.stopPropagation(); onPitch() }}
+                          style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(0,201,167,0.6)', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                          ↻ Regenerate
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: 3, padding: 12, minHeight: 72 }}>
                     {pitch?.loading ? (
-                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>Generating pitch...</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <span style={{ fontSize: 11, color: 'rgba(0,201,167,0.7)', fontFamily: "'JetBrains Mono',monospace" }}>⟳ Generating pitch with 4-step AI pipeline...</span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>Researching → Drafting → Critiquing → Perfecting</span>
+                      </div>
                     ) : pitch?.error ? (
-                      <span style={{ fontSize: 11, color: 'rgba(229,72,77,0.8)', lineHeight: 1.5 }}>
-                        {pitch.error}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <span style={{ fontSize: 11, color: 'rgba(229,72,77,0.8)', lineHeight: 1.5 }}>
+                          {pitch.error}
+                        </span>
+                        <button onClick={e => { e.stopPropagation(); onPitch() }}
+                          className="dr-btn sec" style={{ gap: 6, alignSelf: 'flex-start' }}>
+                          Retry <ArrowRight size={9} />
+                        </button>
+                      </div>
                     ) : pitch?.content ? (
-                      <p style={{ fontSize: 11, lineHeight: 1.6, color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap', margin: 0 }}>{pitch.content}</p>
+                      <p style={{ fontSize: 11, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', whiteSpace: 'pre-wrap', margin: 0 }}>{pitch.content}</p>
                     ) : (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 48 }}>
                         <button onClick={e => { e.stopPropagation(); onPitch() }}
