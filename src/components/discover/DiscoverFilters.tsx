@@ -112,11 +112,12 @@ export function DiscoverFilters({
                 cursor: 'pointer', appearance: 'none', textAlign: 'center', padding: '0 4px',
               }}
             >
+              <option value="CITY">City</option>
               <option value="1">1mi</option>
               <option value="5">5mi</option>
-              <option value="10">10m</option>
-              <option value="25">25m</option>
-              <option value="50">50m</option>
+              <option value="10">10mi</option>
+              <option value="25">25mi</option>
+              <option value="50">50mi</option>
             </select>
           </div>
         </div>

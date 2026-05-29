@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, ArrowRight, Activity, Zap, ShieldAlert, Cpu } from 'lucide-react'
 import { toast } from 'sonner'
@@ -63,38 +63,51 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
     hidden: { x: '100%' },
     visible: { 
       x: 0, 
-      transition: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.4 } 
+      transition: { type: 'tween' as const, ease: [0.16, 1, 0.3, 1] as const, duration: 0.4 } 
     },
     exit: { 
       x: '100%', 
-      transition: { type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.3 } 
+      transition: { type: 'tween' as const, ease: [0.16, 1, 0.3, 1] as const, duration: 0.3 } 
     }
   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } }
   }
   
   const listVariants = {
     visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
   }
 
-  if (!client) return null
+  // Escape key handler
+  useEffect(() => {
+    if (!client) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [client, onClose])
 
-  const domainLabel = client.website ? new URL(client.website.startsWith('http') ? client.website : `https://${client.website}`).hostname.replace('www.', '') : ''
+  let domainLabel = ''
+  if (client?.website) {
+    try { domainLabel = new URL(client.website.startsWith('http') ? client.website : `https://${client.website}`).hostname.replace('www.', '') } catch { domainLabel = client.website }
+  }
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        className="fixed inset-0 z-50 flex justify-end"
-        variants={backdropVariants}
-        initial="hidden"
-        animate="visible"
-        exit="hidden"
-        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-        onClick={onClose}
-      >
+    <>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <AnimatePresence>
+      {client && (
+        <motion.div 
+          key="intel-backdrop"
+          className="fixed inset-0 z-50 flex justify-end"
+          variants={backdropVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+          onClick={onClose}
+        >
         <motion.div 
           className="w-full max-w-[540px] h-full flex flex-col shadow-2xl relative"
           style={{ background: '#060608', borderLeft: '1px solid rgba(255,255,255,0.08)' }}
@@ -301,6 +314,8 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+      )}
+      </AnimatePresence>
+    </>
   )
 }
