@@ -316,7 +316,7 @@ export default function DiscoverPage() {
       const response = await fetch('/api/pitch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client }),
+        body: JSON.stringify({ clientData: client }),
       })
       const data = (await response.json()) as { pitch?: string; error?: string }
       if (!response.ok || data.error) throw new Error(data.error || 'Pitch generation failed')
