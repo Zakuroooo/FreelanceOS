@@ -1,0 +1,37 @@
+import { auth } from '@/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import connectDB from '@/lib/db'
+import Pitch from '@/lib/models/Pitch'
+
+export async function POST(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  let body: { pitchId: string; instagramHandle: string }
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+
+  const { pitchId, instagramHandle } = body
+  if (!pitchId) return NextResponse.json({ error: 'pitchId required' }, { status: 400 })
+
+  await connectDB()
+  const pitch = await Pitch.findOne({ _id: pitchId, userId: session.user.id })
+  if (!pitch) return NextResponse.json({ error: 'Pitch not found' }, { status: 404 })
+
+  const message = pitch.instagramDm
+    || `Hey! 👋 I came across your page and love what you're building. I'd love to chat about how I can help grow your digital presence.\n\n${(pitch.emailBody ?? '').slice(0, 400)}`
+
+  const handle = (instagramHandle || pitch.businessInstagram || '').replace('@', '')
+  const profileUrl = handle ? `https://instagram.com/${handle}` : null
+
+  // Mark instagram as copied
+  await Pitch.findByIdAndUpdate(pitchId, {
+    $set: { 'sentChannels.instagram': { sentAt: new Date(), status: 'copied' } }
+  })
+
+  return NextResponse.json({
+    message,
+    profileUrl,
+    handle: handle || null,
+    instruction: 'Message copied to clipboard. Instagram DM opened in new tab.',
+  })
+}

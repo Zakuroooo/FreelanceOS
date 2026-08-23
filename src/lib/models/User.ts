@@ -15,6 +15,13 @@ export interface IUser extends Document {
     instagram?: string
     emailSmtp?: string
   }
+  gmailOAuth?: {
+    accessToken: string      // AES-256 encrypted
+    refreshToken: string     // AES-256 encrypted
+    tokenExpiry: number      // Unix ms timestamp
+    gmailAddress: string     // e.g. ravi@gmail.com
+    connectedAt: Date
+  }
   plan: string
   monthlyPitchCount: number
   monthlyPitchResetDate?: Date
@@ -41,6 +48,13 @@ const UserSchema = new Schema<IUser>({
     linkedin:  { type: String },
     instagram: { type: String },
     emailSmtp: { type: String },
+  },
+  gmailOAuth: {
+    accessToken:   { type: String },
+    refreshToken:  { type: String },
+    tokenExpiry:   { type: Number },
+    gmailAddress:  { type: String },
+    connectedAt:   { type: Date },
   },
   plan: {
     type: String,

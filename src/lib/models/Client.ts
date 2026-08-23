@@ -14,6 +14,9 @@ export interface IClient extends Document {
     linkedin?: string
     instagram?: string
     facebook?: string
+    twitter?: string
+    youtube?: string
+    whatsapp?: string
   }
   detectedGaps: string[]
   source: 'scraped' | 'manual'
@@ -41,6 +44,9 @@ const ClientSchema = new Schema<IClient>({
     linkedin:   { type: String },
     instagram:  { type: String },
     facebook:   { type: String },
+    twitter:    { type: String },
+    youtube:    { type: String },
+    whatsapp:   { type: String },
   },
   detectedGaps: [{ type: String }],
   source: {
