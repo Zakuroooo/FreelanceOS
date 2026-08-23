@@ -39,3 +39,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# build / scratch logs
+build.log
+*.log
+
+# scratch test scripts (may reference env vars / API keys)
+test_*.js
+test_*.ts
+test-*.js
+test-*.ts
+
+# local AI tooling config (not project source)
+.agent/
+.agents/
+.claude/
+.codex/
+.opencode/
+graphify-out/
+
+# skills lock (local tooling)
+skills-lock.json
