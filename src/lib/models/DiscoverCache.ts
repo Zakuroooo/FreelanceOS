@@ -27,7 +27,17 @@ export interface IDiscoverCache extends Document {
   reviewCount: number
   googleMapsUrl: string
   category: string
-  leadState: 'new' | 'seen' | 'saved' | 'pitched' | 'responded' | 'won' | 'lost' | 'ignored'
+  /*
+   * `leadState` deliberately does NOT live here.
+   *
+   * This collection is keyed by `placeId` alone, with no `userId` — one document per
+   * business, shared by every user, which is the whole point: the enrichment behind it
+   * costs paid Apify/SerpAPI/Places calls. Lead state ("saved", "pitched", "ignored")
+   * is per-user by definition, so storing it on a shared document means the last
+   * writer decides what every other user sees. Per-user state belongs in the client's
+   * own storage (see the discover page) or in the `Client` collection, which is
+   * scoped by `userId`.
+   */
   intelStatus: 'light_scan' | 'prefetching' | 'ready' | 'stale'
   sourceConfidence: 'verified' | 'scraped' | 'inferred' | 'guessed'
   sourceOrigin: string
@@ -65,11 +75,6 @@ const DiscoverCacheSchema = new Schema<IDiscoverCache>({
   reviewCount: { type: Number, default: 0 },
   googleMapsUrl: { type: String },
   category: { type: String },
-  leadState: {
-    type: String,
-    enum: ['new', 'seen', 'saved', 'pitched', 'responded', 'won', 'lost', 'ignored'],
-    default: 'new',
-  },
   intelStatus: {
     type: String,
     enum: ['light_scan', 'prefetching', 'ready', 'stale'],
@@ -87,5 +92,6 @@ const DiscoverCacheSchema = new Schema<IDiscoverCache>({
 // Create TTL index on updatedAt to automatically expire documents after 30 days (2592000 seconds)
 DiscoverCacheSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 2592000 })
 
-const DiscoverCache = models.DiscoverCache || model<IDiscoverCache>('DiscoverCache', DiscoverCacheSchema)
+const DiscoverCache: mongoose.Model<IDiscoverCache> =
+  models.DiscoverCache || model<IDiscoverCache>('DiscoverCache', DiscoverCacheSchema)
 export default DiscoverCache

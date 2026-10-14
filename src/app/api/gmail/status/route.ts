@@ -12,7 +12,7 @@ export async function GET() {
   await connectDB()
   const user = await User.findById(session.user.id).select('gmailOAuth').lean()
 
-  const gmail = (user as any)?.gmailOAuth
+  const gmail = user?.gmailOAuth
   if (!gmail?.accessToken) {
     return NextResponse.json({ connected: false })
   }

@@ -51,8 +51,11 @@ export function SparklesCore({
     }));
   }, [particleDensity, minSize, maxSize, speed]);
 
+  // Randomness must stay out of render; the task-deferred setState keeps both
+  // the purity rule and the set-state-in-effect rule happy.
   useEffect(() => {
-    setParticles(generateParticles());
+    const t = setTimeout(() => setParticles(generateParticles()), 0);
+    return () => clearTimeout(t);
   }, [generateParticles]);
 
   return (

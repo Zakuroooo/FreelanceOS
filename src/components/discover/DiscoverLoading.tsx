@@ -1,13 +1,16 @@
 'use client'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import {
+  Search, MapPin, Globe, ScanSearch, Star, Check,
+} from 'lucide-react'
 
 const PHASES = [
-  { icon: '🔍', text: 'Firing discovery engines' },
-  { icon: '📍', text: 'Extracting business listings' },
-  { icon: '🌐', text: 'Enriching business data' },
-  { icon: '🔎', text: 'Detecting website gaps' },
-  { icon: '⭐', text: 'Scoring opportunities' },
+  { Icon: Search,     text: 'Firing discovery engines' },
+  { Icon: MapPin,     text: 'Extracting business listings' },
+  { Icon: Globe,      text: 'Enriching business data' },
+  { Icon: ScanSearch, text: 'Detecting website gaps' },
+  { Icon: Star,       text: 'Scoring opportunities' },
 ]
 
 export function DiscoverLoading() {
@@ -34,24 +37,22 @@ export function DiscoverLoading() {
           }}
         />
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1.8, ease: 'linear' }}
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
           style={{
-            position: 'absolute', inset: 6, borderRadius: '50%',
-            border: '2px solid transparent',
-            borderTopColor: 'var(--color-accent)',
+            width: 52, height: 52, borderRadius: '50%',
+            background: 'rgba(229,72,77,0.08)', border: '1px solid rgba(229,72,77,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-        />
-        <div style={{
-          position: 'absolute', inset: 14, borderRadius: '50%',
-          background: 'var(--color-accent)', opacity: 0.9,
-        }} />
+        >
+          <Search size={20} color="var(--color-accent)" />
+        </motion.div>
       </div>
 
-      {/* Phase steps */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 340 }}>
+      {/* Phases */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 280 }}>
         {PHASES.map((p, i) => (
-          <AnimatePresence key={i}>
+          <AnimatePresence key={p.text}>
             {i <= phase && (
               <motion.div
                 initial={{ opacity: 0, x: -8 }}
@@ -63,7 +64,9 @@ export function DiscoverLoading() {
                   fontWeight: i === phase ? 500 : 400,
                 }}
               >
-                <span style={{ fontSize: 16, lineHeight: 1 }}>{p.icon}</span>
+                <span style={{ display: 'inline-flex', lineHeight: 1 }}>
+                  <p.Icon size={16} />
+                </span>
                 <span style={{ letterSpacing: '-0.01em' }}>{p.text}</span>
                 {i === phase && (
                   <motion.span
@@ -73,7 +76,7 @@ export function DiscoverLoading() {
                   >…</motion.span>
                 )}
                 {i < phase && (
-                  <span style={{ marginLeft: 'auto', color: '#00C9A7', fontSize: 12 }}>✓</span>
+                  <Check size={13} strokeWidth={3} style={{ marginLeft: 'auto', color: '#00C9A7' }} />
                 )}
               </motion.div>
             )}
@@ -82,7 +85,7 @@ export function DiscoverLoading() {
       </div>
 
       <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: 0, letterSpacing: '-0.01em' }}>
-        Scanning across multiple sources — this may take a few seconds
+        This usually takes 10-30 seconds across all sources
       </p>
     </div>
   )

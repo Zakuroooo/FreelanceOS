@@ -17,6 +17,7 @@ export default auth((req) => {
     '/deals',
     '/notifications',
     '/settings',
+    '/team',
   ]
 
   const isProtected = protectedRoutes.some(route =>

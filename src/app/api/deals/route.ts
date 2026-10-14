@@ -1,7 +1,9 @@
 import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
-import Deal from '@/lib/models/Deal'
+import Deal, { type IDeal } from '@/lib/models/Deal'
+import { pick, DEAL_WRITABLE_FIELDS } from '@/lib/sanitize'
+import { ensureSessionScope } from '@/lib/scope'
 
 // GET /api/deals — returns deals grouped by stage for Kanban
 export async function GET(req: NextRequest) {
@@ -12,8 +14,10 @@ export async function GET(req: NextRequest) {
   const stage = searchParams.get('stage') // optional filter
 
   await connectDB()
+  // Team-shared: the whole workspace sees the pipeline; userId stays as attribution.
+  const scope = await ensureSessionScope(session.user.id)
 
-  const query: Record<string, unknown> = { userId: session.user.id }
+  const query: Record<string, unknown> = { orgId: scope.orgId }
   if (stage) query.stage = stage
 
   const deals = await Deal.find(query).sort({ createdAt: -1 }).lean()
@@ -47,15 +51,21 @@ export async function POST(req: NextRequest) {
   let body: Record<string, unknown>
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
-  await connectDB()
+  if (typeof body?.businessName !== 'string' || !body.businessName.trim()) {
+    return NextResponse.json({ error: 'businessName is required' }, { status: 400 })
+  }
 
+  await connectDB()
+  const scope = await ensureSessionScope(session.user.id)
+
+  // Whitelist first, server-owned fields last — a client body can't set userId or stage.
   const deal = await Deal.create({
+    ...pick<IDeal>(body, DEAL_WRITABLE_FIELDS),
     userId: session.user.id,
+    orgId: scope.orgId,
     stage:  'pitched',
     pitchedAt: new Date(),
-    currency: 'INR',
     notes: [],
-    ...body,
   })
 
   return NextResponse.json({ deal }, { status: 201 })

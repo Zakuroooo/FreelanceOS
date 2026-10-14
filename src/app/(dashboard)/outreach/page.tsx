@@ -6,13 +6,27 @@ import {
   Mail, MessageCircle, Link2, Camera,
   Zap, CheckCircle, XCircle, Clock, RefreshCw,
   ChevronRight, Users, Send,
+  AlertTriangle, PenLine, Rocket,
 } from 'lucide-react'
+import { extractSseEvents, type SseEvent } from '@/lib/sse'
+import { copyText } from '@/lib/handoff'
+import { toast } from 'sonner'
+import { PageHeader } from '@/components/ui/kit'
 
 
-interface Lead { _id: string; businessName: string; businessLocation?: string; opportunityScore?: number; businessEmail?: string; businessPhone?: string; businessInstagram?: string; businessLinkedin?: string; detectedGaps?: string[]; website?: string }
+interface Lead { _id: string; businessName: string; businessLocation?: string; opportunityScore?: number; businessEmail?: string; businessEmailConfidence?: string; businessPhone?: string; businessInstagram?: string; businessLinkedin?: string; detectedGaps?: string[]; website?: string }
 interface Channels { email: boolean; whatsapp: boolean; linkedin: boolean; instagram: boolean }
 interface LeadStatus { name: string; status: 'waiting' | 'generating' | 'done' | 'error'; time?: number }
 interface FeedEvent { type: string; businessName?: string; timestamp: Date; channel?: string; success?: boolean; error?: string; pitchId?: string }
+/** A deep link the user fires manually — no platform allows silent DM sending. */
+interface ChannelHandoff {
+  pitchId: string
+  businessName: string
+  channel: string
+  url: string
+  message?: string
+  fired: boolean
+}
 
 const CHANNEL_CONFIG = [
   { key: 'email' as const,     Icon: Mail,          label: 'Email',     color: '#60a5fa', note: 'Requires Gmail connection' },
@@ -29,8 +43,10 @@ export default function OutreachPage() {
   const [started, setStarted]         = useState(false)
   const [leadStatuses, setLeadStatuses] = useState<LeadStatus[]>([])
   const [feedEvents, setFeedEvents]   = useState<FeedEvent[]>([])
-  const [summary, setSummary]         = useState<{ success: number; failed: number } | null>(null)
+  const [summary, setSummary]       = useState<{ success: number; failed: number } | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  /** Deep links collected from channel_ready events — fired one by one post-campaign. */
+  const [handoffs, setHandoffs]     = useState<ChannelHandoff[]>([])
   const feedEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -58,18 +74,43 @@ export default function OutreachPage() {
   const selectedLeads = leads.filter(l => selected.has(l._id))
   const hasChannels   = Object.values(channels).some(Boolean)
 
+  // How many of the selected leads are actually contactable per channel — shown
+  // pre-flight so a campaign can't silently no-op the way email used to.
+  // Guessed info@domains don't count as contactable: they bounce.
+  const coverage: Record<keyof Channels, number> = {
+    email:     selectedLeads.filter(l => !!l.businessEmail && l.businessEmailConfidence !== 'guessed').length,
+    whatsapp:  selectedLeads.filter(l => !!l.businessPhone).length,
+    linkedin:  selectedLeads.filter(l => !!l.businessLinkedin).length,
+    instagram: selectedLeads.filter(l => !!l.businessInstagram).length,
+  }
+  const unverifiedEmailCount = selectedLeads.filter(l => !!l.businessEmail && l.businessEmailConfidence === 'guessed').length
+
   const launchCampaign = async () => {
     setConfirmOpen(false)
     setLaunching(true)
     setStarted(true)
     setSummary(null)
     setFeedEvents([])
+    setHandoffs([])
 
     // Initialize lead statuses
     const statuses: LeadStatus[] = selectedLeads.map(l => ({ name: l.businessName, status: 'waiting' }))
     setLeadStatuses(statuses)
 
     const startTimes: Record<number, number> = {}
+
+    // Marks the campaign over exactly once — from the `complete` event or from a
+    // stream that ended without one (network drop mid-run used to leave the button
+    // stuck on "Sending…" forever). Counts are tracked locally so a truncated
+    // stream still summarizes what actually happened.
+    let finished = false
+    const tally = { success: 0, failed: 0 }
+    const finish = (success?: number, failed?: number) => {
+      if (finished) return
+      finished = true
+      setSummary({ success: success ?? tally.success, failed: failed ?? tally.failed })
+      setLaunching(false)
+    }
 
     try {
       const res = await fetch('/api/outreach/batch', {
@@ -80,6 +121,7 @@ export default function OutreachPage() {
             clientId:         l._id,
             businessName:     l.businessName,
             businessEmail:    l.businessEmail,
+            businessEmailConfidence: l.businessEmailConfidence,
             businessPhone:    l.businessPhone,
             businessInstagram: l.businessInstagram,
             businessLinkedin:  l.businessLinkedin,
@@ -91,73 +133,116 @@ export default function OutreachPage() {
         }),
       })
 
-      const reader  = res.body!.getReader()
+      // A 4xx/5xx returns JSON, not an event stream. Without this check the reader
+      // loop parsed nothing, no `complete` ever arrived, and the UI hung.
+      if (!res.ok) {
+        let message = `Campaign failed to start (${res.status})`
+        try {
+          const data = await res.json()
+          if (data?.error) message = data.error
+        } catch { /* non-JSON error body */ }
+        setFeedEvents(prev => [...prev, { type: 'error', timestamp: new Date(), error: message }])
+        finish(0, selectedLeads.length)
+        return
+      }
+
+      if (!res.body) {
+        throw new Error('Stream unavailable')
+      }
+
+      const reader  = res.body.getReader()
       const decoder = new TextDecoder()
+      let buffer = ''
+
+      const handleEvent = (event: SseEvent) => {
+        if (event.type === 'generating') {
+          startTimes[event.index as number] = Date.now()
+          setLeadStatuses(prev => {
+            const next = [...prev]
+            const i = event.index as number
+            if (next[i]) next[i] = { ...next[i], status: 'generating' }
+            return next
+          })
+          setFeedEvents(prev => [...prev, { type: 'info', businessName: event.businessName as string, timestamp: new Date() }])
+        }
+
+        if (event.type === 'pitch_generated') {
+          setFeedEvents(prev => [...prev, { type: 'pitch', businessName: event.businessName as string | undefined, timestamp: new Date() }])
+        }
+
+        // Non-email channels arrive as ready-to-fire deep links
+        if (event.type === 'channel_ready') {
+          setHandoffs(prev => [...prev, {
+            pitchId: String(event.pitchId ?? ''),
+            businessName: String(event.businessName ?? ''),
+            channel: String(event.channel ?? ''),
+            url: String(event.url ?? ''),
+            message: typeof event.message === 'string' ? event.message : undefined,
+            fired: false,
+          }])
+          setFeedEvents(prev => [...prev, {
+            type: 'channel', businessName: event.businessName as string | undefined,
+            timestamp: new Date(), channel: event.channel as string,
+          }])
+        }
+
+        if (event.type === 'email_sent') {
+          setFeedEvents(prev => [...prev, {
+            type: 'email', businessName: event.businessName as string,
+            timestamp: new Date(), channel: 'email', success: event.success as boolean,
+          }])
+        }
+
+        if (event.type === 'done') {
+          tally.success += 1
+          const idx = event.index as number
+          const elapsed = startTimes[idx] ? (Date.now() - startTimes[idx]) / 1000 : undefined
+          setLeadStatuses(prev => {
+            const next = [...prev]
+            if (next[idx]) next[idx] = { ...next[idx], status: 'done', time: elapsed }
+            return next
+          })
+        }
+
+        if (event.type === 'error') {
+          if (typeof event.index === 'number') {
+            tally.failed += 1
+            setLeadStatuses(prev => {
+              const next = [...prev]
+              const i = event.index as number
+              if (next[i]) next[i] = { ...next[i], status: 'error' }
+              return next
+            })
+          }
+          setFeedEvents(prev => [...prev, {
+            type: 'error', businessName: event.businessName as string | undefined,
+            timestamp: new Date(), error: event.error as string | undefined,
+          }])
+        }
+
+        if (event.type === 'complete') {
+          finish((event.success as number) ?? 0, (event.failed as number) ?? 0)
+        }
+      }
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        // Parsing lives in lib/sse.ts — split lines carry over across reads.
+        buffer += decoder.decode(value, { stream: true })
+        const parsed = extractSseEvents(buffer)
+        buffer = parsed.rest
 
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue
-          try {
-            const event = JSON.parse(line.slice(6))
-
-            if (event.type === 'generating') {
-              startTimes[event.index] = Date.now()
-              setLeadStatuses(prev => {
-                const next = [...prev]
-                if (next[event.index]) next[event.index] = { ...next[event.index], status: 'generating' }
-                return next
-              })
-              setFeedEvents(prev => [...prev, { type: 'info', businessName: event.businessName, timestamp: new Date() }])
-            }
-
-            if (event.type === 'pitch_generated') {
-              setFeedEvents(prev => [...prev, { type: 'pitch', businessName: event.businessName, timestamp: new Date() }])
-            }
-
-            if (event.type === 'email_sent') {
-              setFeedEvents(prev => [...prev, {
-                type: 'email', businessName: event.businessName,
-                timestamp: new Date(), channel: 'email', success: event.success,
-              }])
-            }
-
-            if (event.type === 'done') {
-              const elapsed = startTimes[event.index] ? (Date.now() - startTimes[event.index]) / 1000 : undefined
-              setLeadStatuses(prev => {
-                const next = [...prev]
-                if (next[event.index]) next[event.index] = { ...next[event.index], status: 'done', time: elapsed }
-                return next
-              })
-            }
-
-            if (event.type === 'error') {
-              setLeadStatuses(prev => {
-                const next = [...prev]
-                if (next[event.index]) next[event.index] = { ...next[event.index], status: 'error' }
-                return next
-              })
-              setFeedEvents(prev => [...prev, {
-                type: 'error', businessName: event.businessName,
-                timestamp: new Date(), error: event.error,
-              }])
-            }
-
-            if (event.type === 'complete') {
-              setSummary({ success: event.success, failed: event.failed })
-              setLaunching(false)
-            }
-          } catch { /* skip malformed SSE line */ }
-        }
+        for (const event of parsed.events) handleEvent(event)
       }
+
+      // Stream closed without a `complete` frame (connection dropped). Summarize
+      // what actually finished instead of leaving the UI hanging.
+      finish()
     } catch (err) {
-      setLaunching(false)
       setFeedEvents(prev => [...prev, { type: 'error', timestamp: new Date(), error: 'Campaign failed to start' }])
+      finish(0, selectedLeads.length)
     }
   }
 
@@ -166,13 +251,11 @@ export default function OutreachPage() {
 
   return (
     <div style={{ minHeight: '100vh', color: '#FAFAFA' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.04em', margin: 0 }}>Outreach Control Room</h1>
-        <p style={{ margin: '6px 0 0', fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
-          Select leads, choose channels, launch your campaign
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Campaigns"
+        title="Outreach Control Room"
+        subtitle="Select leads, choose channels, launch your campaign"
+      />
 
       <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 20, alignItems: 'start' }}>
 
@@ -233,8 +316,15 @@ export default function OutreachPage() {
             </div>
 
             {selected.size > 0 && (
-              <div style={{ marginTop: 10, fontSize: 12, color: '#E5484D', fontWeight: 600 }}>
-                {selected.size} lead{selected.size > 1 ? 's' : ''} selected
+              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 600 }}>
+                <span style={{ color: '#E5484D' }}>
+                  {selected.size} lead{selected.size > 1 ? 's' : ''} selected
+                </span>
+                {unverifiedEmailCount > 0 && (
+                  <div style={{ marginTop: 4, fontSize: 11, color: '#f59e0b', fontWeight: 500 }}>
+                    {unverifiedEmailCount} email{unverifiedEmailCount > 1 ? 's are' : ' is'} an unverified info@ guess — they will skip auto-send and land in the send queue instead.
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -262,7 +352,13 @@ export default function OutreachPage() {
                       <Icon size={12} color={active ? color : 'rgba(255,255,255,0.3)'} />
                       <span style={{ fontSize: 12, fontWeight: 700, color: active ? color : 'rgba(255,255,255,0.5)' }}>{label}</span>
                     </div>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{note}</div>
+                    {selected.size > 0 ? (
+                      <div style={{ fontSize: 10, color: coverage[key] === selected.size ? '#4ade80' : coverage[key] > 0 ? '#f59e0b' : 'rgba(255,255,255,0.3)' }}>
+                        {coverage[key]}/{selected.size} leads contactable
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>{note}</div>
+                    )}
                   </button>
                 )
               })}
@@ -369,12 +465,13 @@ export default function OutreachPage() {
                         border: `1px solid ${ev.type === 'error' ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)'}`,
                       }}
                     >
-                      <span style={{ fontSize: 14 }}>{ev.type === 'error' ? '❌' : ev.type === 'email' ? (ev.success ? '✉️' : '⚠️') : ev.type === 'pitch' ? '✍️' : '⟳'}</span>
+                      <FeedIcon event={ev} />
                       <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', flex: 1 }}>
                         {ev.type === 'email' && ev.success ? `Email sent → ${ev.businessName}` : ''}
                         {ev.type === 'email' && !ev.success ? `Email failed → ${ev.businessName}` : ''}
                         {ev.type === 'pitch' ? `Pitch generated → ${ev.businessName}` : ''}
                         {ev.type === 'info' ? `Generating pitch for ${ev.businessName}...` : ''}
+                        {ev.type === 'channel' ? `${ev.channel ?? 'Channel'} message ready — send it below → ${ev.businessName}` : ''}
                         {ev.type === 'error' ? `Error: ${ev.businessName ?? ''} — ${ev.error}` : ''}
                       </span>
                       <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
@@ -385,6 +482,110 @@ export default function OutreachPage() {
                 </AnimatePresence>
                 <div ref={feedEndRef} />
               </div>
+
+              {/* Manual-send queue — WhatsApp/LinkedIn/Instagram deep links */}
+              {handoffs.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    margin: '0 20px 20px',
+                    padding: '16px', borderRadius: 12,
+                    background: 'rgba(96,165,250,0.05)', border: '1px solid rgba(96,165,250,0.2)',
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa', marginBottom: 4 }}>
+                    Send queue — {handoffs.filter(h => !h.fired).length} of {handoffs.length} remaining
+                  </div>
+                  <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', marginBottom: 12, lineHeight: 1.5 }}>
+                    These channels don&apos;t allow apps to send silently. Tap Open — the chat/app
+                    opens with your message pre-filled or copied; press its send button.
+                  </div>
+                  {(() => {
+                    const next = handoffs.find(h => !h.fired)
+                    return next ? (
+                      <a
+                        href={next.url}
+                        target='_blank'
+                        rel='noreferrer'
+                        onClick={() => setHandoffs(prev => prev.map(x => (!x.fired && x === next ? { ...x, fired: true } : x)))}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          padding: '11px', borderRadius: 8, marginBottom: 10,
+                          background: 'linear-gradient(135deg, #C41425, #E5484D)',
+                          border: 'none', color: '#fff',
+                          fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                          boxShadow: '0 4px 16px rgba(196,20,37,0.35)',
+                        }}
+                      >
+                        <Send size={13} />
+                        Open next → {next.businessName} ({next.channel})
+                      </a>
+                    ) : (
+                      <div style={{ padding: '10px', borderRadius: 8, marginBottom: 10, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.25)', textAlign: 'center' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#4ade80' }}>
+                          <CheckCircle size={13} /> Queue complete — every handoff opened
+                        </span>
+                      </div>
+                    )
+                  })()}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto' }}>
+                    {handoffs.map((h, i) => (
+                      <div
+                        key={`${h.pitchId}-${h.channel}-${i}`}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '8px 10px', borderRadius: 8,
+                          background: h.fired ? 'rgba(74,222,128,0.06)' : 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${h.fired ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                          opacity: h.fired ? 0.55 : 1,
+                        }}
+                      >
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                          color: h.channel === 'whatsapp' ? '#4ade80' : h.channel === 'linkedin' ? '#60a5fa' : '#e879f9',
+                          minWidth: 64,
+                        }}>{h.channel}</span>
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: 12, color: '#FAFAFA', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {h.businessName}
+                          </span>
+                        </span>
+                        {h.message && (
+                          <button
+                            title='Copy message'
+                            onClick={async () => {
+                              const { ok } = await copyText(h.message ?? '')
+                              if (ok) toast.success('Message copied')
+                              else toast.error('Copy blocked — open the link and paste manually')
+                            }}
+                            style={{ padding: '5px 8px', borderRadius: 6, cursor: 'pointer',
+                              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                              color: 'rgba(255,255,255,0.55)', fontSize: 10, fontWeight: 600 }}
+                          >
+                            Copy
+                          </button>
+                        )}
+                        <a
+                          href={h.url}
+                          target='_blank'
+                          rel='noreferrer'
+                          onClick={() => setHandoffs(prev => prev.map((x, xi) => (xi === i ? { ...x, fired: true } : x)))}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            padding: '5px 10px', borderRadius: 6,
+                            background: h.fired ? 'rgba(255,255,255,0.04)' : 'linear-gradient(135deg, #C41425, #E5484D)',
+                            border: 'none', color: h.fired ? 'rgba(255,255,255,0.4)' : '#fff',
+                            fontSize: 11, fontWeight: 700, textDecoration: 'none',
+                          }}
+                        >
+                          {h.fired ? 'Reopen' : 'Open'}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
               {/* Summary */}
               {summary && (
@@ -400,7 +601,8 @@ export default function OutreachPage() {
                 >
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#4ade80', marginBottom: 3 }}>
-                      ✅ Campaign Complete
+                      <CheckCircle size={14} color='#4ade80' style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />
+                      Campaign Complete
                     </div>
                     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
                       {summary.success} sent • {summary.failed} failed
@@ -436,7 +638,9 @@ export default function OutreachPage() {
               onClick={e => e.stopPropagation()}
               style={{ background: 'rgba(10,10,16,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: 28, width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}
             >
-              <div style={{ fontSize: 20, marginBottom: 12 }}>🚀</div>
+              <div style={{ marginBottom: 12 }}>
+                <Rocket size={22} color='#E5484D' />
+              </div>
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Launch this campaign?</div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20, lineHeight: 1.6 }}>
                 This will generate AI pitches and send them to <strong style={{ color: '#FAFAFA' }}>{selected.size} business{selected.size > 1 ? 'es' : ''}</strong> via {Object.entries(channels).filter(([,v]) => v).map(([k]) => k).join(', ')}.
@@ -464,6 +668,18 @@ function StatusIcon({ status }: { status: LeadStatus['status'] }) {
   if (status === 'error') return <XCircle size={13} color='#ef4444' />
   if (status === 'generating') return <div style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.2)', borderTopColor: '#E5484D', borderRadius: '50%', animation: 'spin 0.6s linear infinite', flexShrink: 0 }} />
   return <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.2)', flexShrink: 0 }} />
+}
+
+/** SVG icon for a campaign feed row — replaces the old emoji glyphs. */
+function FeedIcon({ event }: { event: FeedEvent }) {
+  if (event.type === 'error') return <XCircle size={14} color='#ef4444' />
+  if (event.type === 'email') {
+    return event.success
+      ? <Mail size={14} color='#60a5fa' />
+      : <AlertTriangle size={14} color='#f59e0b' />
+  }
+  if (event.type === 'pitch') return <PenLine size={14} color='#a78bfa' />
+  return <RefreshCw size={14} color='rgba(255,255,255,0.4)' />
 }
 
 const pillBtnStyle: React.CSSProperties = {

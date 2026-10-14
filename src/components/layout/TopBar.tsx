@@ -1,12 +1,25 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Bell, User, Menu } from 'lucide-react'
 
 export default function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname()
-  
+  const router = useRouter()
+  const [unreadCount, setUnreadCount] = useState<number | null>(null)
+
+  // The dot used to be hardcoded on; the badge now reflects the real inbox.
+  useEffect(() => {
+    let active = true
+    fetch('/api/notifications?limit=1')
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => { if (active && data) setUnreadCount(data.unreadCount ?? 0) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [pathname])
+
   // Create a readable title from pathname
   let pageTitle = 'Overview'
   if (pathname) {
@@ -65,8 +78,10 @@ export default function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {/* Notification Bell */}
-        <button 
+        <button
           className="bell-btn"
+          onClick={() => router.push('/notifications')}
+          title={unreadCount ? `${unreadCount} unread alert${unreadCount > 1 ? 's' : ''}` : 'Alerts'}
           style={{
             background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -83,17 +98,29 @@ export default function TopBar({ onMenuClick }: { onMenuClick?: () => void }) {
           }}
         >
           <Bell size={16} />
-          {/* Unread indicator */}
-          <span style={{
-            position: 'absolute',
-            top: '0',
-            right: '0',
-            width: '8px',
-            height: '8px',
-            backgroundColor: 'var(--color-accent)',
-            borderRadius: '50%',
-            border: '2px solid var(--color-bg)'
-          }} />
+          {/* Unread indicator — only when the inbox actually has unread items */}
+          {unreadCount !== null && unreadCount > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-4px',
+              minWidth: '15px',
+              height: '15px',
+              padding: '0 3px',
+              backgroundColor: 'var(--color-accent)',
+              borderRadius: '8px',
+              border: '2px solid var(--color-bg)',
+              fontSize: '8px',
+              fontWeight: 700,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
+            }}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Avatar */}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, MessageCircle, Link2, Camera, X, Send, ExternalLink, Copy, Check, Zap, AlertCircle } from 'lucide-react'
+import { copyText, claimPopup, navigatePopup } from '@/lib/handoff'
 const LinkedinIcon = Link2
 const InstagramIcon = Camera
 
@@ -11,6 +12,7 @@ interface PitchData {
   _id: string
   businessName: string
   businessEmail?: string
+  businessEmailConfidence?: string
   businessPhone?: string
   businessInstagram?: string
   businessLinkedin?: string
@@ -25,27 +27,32 @@ interface PitchData {
 
 interface Props {
   pitch: PitchData
-  gmailAddress: string | null
+  /** True when ANY transport (Gmail or SMTP) is live — not Gmail-specific. */
+  emailReady: boolean
+  emailFrom: string | null
   onClose: () => void
   onSuccess: (msg: string) => void
 }
 
 type ChannelState = 'idle' | 'loading' | 'success' | 'error'
 
-export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: Props) {
+export default function SendModal({ pitch, emailReady, emailFrom, onClose, onSuccess }: Props) {
   const [emailState, setEmailState]   = useState<ChannelState>('idle')
   const [waState, setWaState]         = useState<ChannelState>('idle')
   const [liState, setLiState]         = useState<ChannelState>('idle')
   const [igState, setIgState]         = useState<ChannelState>('idle')
   const [copiedKey, setCopiedKey]     = useState<string | null>(null)
   const [errorMsg, setErrorMsg]       = useState<string>('')
+  /** The message text stays visible so manual copy is ALWAYS possible. */
+  const [manualCopy, setManualCopy]   = useState<{ key: string; text: string; ok: boolean } | null>(null)
 
-  const copyToClipboard = async (text: string, key: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedKey(key)
-      setTimeout(() => setCopiedKey(null), 2000)
-    } catch {}
+  // Copy with explicit success/failure — the old silent catch is what produced
+  // "half-copied" reports: the toast lied while the clipboard write had failed.
+  const copyReliably = async (text: string, key: string) => {
+    const { ok } = await copyText(text)
+    setCopiedKey(ok ? key : null)
+    setManualCopy({ key, text, ok })
+    return ok
   }
 
   const sendEmail = async () => {
@@ -62,12 +69,15 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
       if (!res.ok) {
         setEmailState('error')
         setErrorMsg(data.error ?? 'Send failed')
-        if (data.action === 'connect_gmail') {
-          setTimeout(() => window.location.href = '/api/gmail/connect', 1500)
+        if (data.action === 'connect_email') {
+          setErrorMsg(`${data.error ?? 'No mailbox connected.'} Fastest fix: Settings → SMTP — works instantly with any email provider.`)
+          if (data.action === 'connect_gmail') {
+            setTimeout(() => window.location.href = '/api/gmail/connect', 2500)
+          }
         }
       } else {
         setEmailState('success')
-        onSuccess(`✅ Email sent to ${pitch.businessEmail}`)
+        onSuccess(`Email sent to ${pitch.businessEmail}`)
       }
     } catch {
       setEmailState('error')
@@ -75,9 +85,12 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
     }
   }
 
+  // Popup blockers kill window.open after an await — claim the tab synchronously
+  // inside the click, then navigate it once the URL is ready.
   const openWhatsApp = async () => {
     if (!pitch.businessPhone) return
     setWaState('loading')
+    const tab = claimPopup()
     try {
       const res  = await fetch('/api/outreach/whatsapp', {
         method: 'POST',
@@ -86,13 +99,21 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
       })
       const data = await res.json()
       if (res.ok && data.waUrl) {
-        window.open(data.waUrl, '_blank')
+        const opened = tab ? navigatePopup(tab, data.waUrl) : false
+        if (!opened) {
+          // Blocked even on direct click — surface a real link instead of lying.
+          window.open(data.waUrl, '_blank') ?? setManualCopy({ key: 'wa-fallback', text: data.waUrl, ok: false })
+        }
         setWaState('success')
-        onSuccess('WhatsApp opened with pitch pre-filled')
+        onSuccess('WhatsApp opened with pitch pre-filled — press Send in WhatsApp')
+      } else if (tab) {
+        tab.close()
+        setWaState('error')
       } else {
         setWaState('error')
       }
     } catch {
+      tab?.close()
       setWaState('error')
     }
   }
@@ -107,10 +128,18 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
       })
       const data = await res.json()
       if (res.ok) {
-        await copyToClipboard(data.message, 'li')
-        if (data.profileUrl) window.open(data.profileUrl, '_blank')
-        setLiState('success')
-        onSuccess('LinkedIn pitch copied & profile opened')
+        // Copy FIRST and verify it actually landed before opening anything.
+        const copied = await copyReliably(data.message, 'li')
+        const tab = claimPopup()
+        if (data.profileUrl) {
+          const opened = tab ? navigatePopup(tab, data.profileUrl) : false
+          if (!opened && data.profileUrl) window.open(data.profileUrl, '_blank')
+        } else {
+          tab?.close()
+        }
+        setLiState(copied ? 'success' : 'error')
+        if (!copied) setErrorMsg('Automatic copy was blocked by the browser — use the message box below to copy manually.')
+        else onSuccess('Message copied — paste it in the LinkedIn chat that just opened')
       } else {
         setLiState('error')
       }
@@ -129,10 +158,17 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
       })
       const data = await res.json()
       if (res.ok) {
-        await copyToClipboard(data.message, 'ig')
-        if (data.profileUrl) window.open(data.profileUrl, '_blank')
-        setIgState('success')
-        onSuccess('Instagram pitch copied & DM opened')
+        const copied = await copyReliably(data.message, 'ig')
+        const tab = claimPopup()
+        if (data.profileUrl) {
+          const opened = tab ? navigatePopup(tab, data.profileUrl) : false
+          if (!opened && data.profileUrl) window.open(data.profileUrl, '_blank')
+        } else {
+          tab?.close()
+        }
+        setIgState(copied ? 'success' : 'error')
+        if (!copied) setErrorMsg('Automatic copy was blocked by the browser — use the message box below to copy manually.')
+        else onSuccess('Message copied — paste it in the Instagram DM that just opened')
       } else {
         setIgState('error')
       }
@@ -148,25 +184,43 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
       label:     'Email',
       color:     '#60a5fa',
       available: !!pitch.businessEmail,
-      info:      pitch.businessEmail ?? 'No email found for this business',
+      info:      pitch.businessEmail
+        ? `${pitch.businessEmail}${pitch.businessEmailConfidence === 'guessed' ? '  ·  unverified guess — confirm before sending' : ''}${emailFrom ? `  ·  via ${emailFrom}` : ''}`
+        : 'No email found for this business',
       state:     emailState,
       action:    sendEmail,
       actionLabel: 'Send Email Now',
       actionIcon:  Send,
-      disabled:  !pitch.businessEmail || !gmailAddress || emailState === 'success',
-      extra: !gmailAddress ? (
-        <a
-          href='/api/gmail/connect'
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '8px 14px', borderRadius: 8, marginTop: 10,
-            background: 'rgba(196,20,37,0.15)', border: '1px solid rgba(196,20,37,0.3)',
-            color: '#ff4455', fontSize: 12, fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
-          <Zap size={11} /> Connect Gmail to send →
-        </a>
+      disabled:  !pitch.businessEmail || !emailReady || emailState === 'success',
+      extra: !emailReady ? (
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          <a
+            href='/api/gmail/connect'
+            style={{
+              flex: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 12px', borderRadius: 8,
+              background: 'linear-gradient(135deg, #C41425, #E5484D)',
+              border: 'none', color: '#fff', fontSize: 12, fontWeight: 700,
+              textDecoration: 'none',
+            }}
+          >
+            <Zap size={11} /> Connect Gmail — one tap →
+          </a>
+          <a
+            href='/settings'
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px', borderRadius: 8,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: 500,
+              textDecoration: 'none',
+            }}
+            title='Works instantly with any provider while Gmail verification is pending'
+          >
+            SMTP
+          </a>
+        </div>
       ) : null,
     },
     {
@@ -280,6 +334,46 @@ export default function SendModal({ pitch, gmailAddress, onClose, onSuccess }: P
             fontSize: 12, color: '#ef4444', display: 'flex', gap: 8, alignItems: 'center',
           }}>
             <AlertCircle size={12} /> {errorMsg}
+          </div>
+        )}
+
+        {/* Manual-copy box — the guaranteed fallback when browser clipboard is blocked */}
+        {manualCopy && (
+          <div style={{
+            margin: '12px 24px 0', padding: '12px 14px', borderRadius: 8,
+            background: manualCopy.ok ? 'rgba(74,222,128,0.06)' : 'rgba(245,158,11,0.08)',
+            border: `1px solid ${manualCopy.ok ? 'rgba(74,222,128,0.25)' : 'rgba(245,158,11,0.35)'}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: manualCopy.ok ? '#4ade80' : '#f59e0b' }}>
+                {manualCopy.ok ? 'Copied to clipboard — paste it in the opened app' : 'Auto-copy blocked — select all and copy manually'}
+              </span>
+              <button
+                onClick={async () => {
+                  const { ok } = await copyText(manualCopy.text)
+                  setManualCopy({ ...manualCopy, ok })
+                }}
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 5, padding: '3px 8px', cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: 600 }}
+              >
+                Copy again
+              </button>
+            </div>
+            {!manualCopy.ok && (
+              <textarea
+                readOnly
+                value={manualCopy.text}
+                onFocus={e => e.currentTarget.select()}
+                rows={4}
+                style={{
+                  width: '100%', boxSizing: 'border-box', resize: 'vertical',
+                  background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 6, padding: 8, color: 'rgba(255,255,255,0.8)',
+                  fontSize: 11, fontFamily: 'inherit',
+                }}
+              />
+            )}
           </div>
         )}
 

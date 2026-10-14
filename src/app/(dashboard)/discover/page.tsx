@@ -17,15 +17,24 @@ import {
 } from '@/components/discover/DiscoverRow'
 import { IntelDrawer } from '@/components/discover/IntelDrawer'
 import { useDiscoverKeyboard } from '@/hooks/useDiscoverKeyboard'
+import { getContactability } from '@/lib/leads'
+import PitchChatModal, { type PitchChatResult } from '@/components/discover/PitchChatModal'
 
 type Status = 'idle' | 'loading' | 'results' | 'error'
 type DiscoverMode = 'coverage' | 'priority' | 'gold' | 'role-match'
 type DiscoverSort = 'score' | 'newest' | 'contactability' | 'gold-first'
 
+interface PitchAgentMeta {
+  grounded?: boolean
+  audited?: boolean
+  memoryHits?: number
+}
+
 interface PitchState {
   loading: boolean
   content: string | null
   error: string | null
+  agent?: PitchAgentMeta
 }
 
 interface CacheMetrics {
@@ -36,15 +45,9 @@ interface CacheMetrics {
 
 const SEARCH_STORAGE_KEY = 'freelanceos_discover_state_v2'
 
-function getContactability(client: Client) {
-  let count = 0
-  if (client.website) count += 1
-  if (client.email) count += 1
-  if (client.phone) count += 1
-  if (client.socials.instagram) count += 1
-  if (client.socials.whatsapp || client.phone) count += 1
-  return count
-}
+// Hard ceiling so seenIds can't grow unboundedly — it ships to the server with
+// every search, and used to be persisted forever.
+const SEEN_IDS_CAP = 500
 
 function isHiddenGold(client: Client) {
   return (client.reviewCount ?? 0) >= 12 && client.detectedGaps.length >= 2 && client.opportunityScore >= 35
@@ -80,6 +83,7 @@ export default function DiscoverPage() {
 
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
   const [intelDrawerClient, setIntelDrawerClient] = useState<Client | null>(null)
+  const [chatClient, setChatClient] = useState<Client | null>(null)
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [saved, setSaved] = useState<Set<string>>(new Set())
@@ -155,33 +159,46 @@ export default function DiscoverPage() {
 
   useEffect(() => {
     if (!isLoaded) return
-    localStorage.setItem(
-      SEARCH_STORAGE_KEY,
-      JSON.stringify({
-        businessType,
-        locality,
-        activePreset,
-        radius,
-        mode,
-        sort,
-        showIgnored,
-        status: status === 'loading' ? 'idle' : status,
-        results,
-        errMsg,
-        errDetails,
-        dataSource,
-        offset,
-        cacheMetrics,
-        expandedRow,
-        focusedRowId,
-        selectedIds: Array.from(selectedIds),
-        saved: Array.from(saved),
-        pitches,
-        seenIds: Array.from(seenIds),
-        leadStates,
-        lastQuery,
-      })
-    )
+    const payload = {
+      businessType,
+      locality,
+      activePreset,
+      radius,
+      mode,
+      sort,
+      showIgnored,
+      status: status === 'loading' ? 'idle' : status,
+      results,
+      errMsg,
+      errDetails,
+      dataSource,
+      offset,
+      cacheMetrics,
+      expandedRow,
+      focusedRowId,
+      selectedIds: Array.from(selectedIds),
+      saved: Array.from(saved),
+      pitches,
+      seenIds: Array.from(seenIds),
+      leadStates,
+      lastQuery,
+    }
+    // A few hundred leads plus full pitch bodies blew past the ~5 MB quota and the
+    // throw inside this effect broke rendering. Shed heavy data progressively until
+    // the write fits; filters alone are still worth persisting.
+    const attempts = [
+      payload,
+      { ...payload, pitches: {} },
+      { ...payload, pitches: {}, results: [] },
+    ]
+    for (const attempt of attempts) {
+      try {
+        localStorage.setItem(SEARCH_STORAGE_KEY, JSON.stringify(attempt))
+        break
+      } catch {
+        // try the next, lighter shape — final failure is safe to ignore
+      }
+    }
   }, [
     activePreset,
     businessType,
@@ -301,13 +318,42 @@ export default function DiscoverPage() {
   )
 
   const markLeadSeen = useCallback((client: Client) => {
-    setSeenIds((current) => (current.has(client.id) ? current : new Set([...current, client.id])))
+    setSeenIds((current) => {
+      if (current.has(client.id)) return current
+      const next = new Set([...current, client.id])
+      // FIFO eviction past the cap — keeps server payloads and localStorage bounded
+      while (next.size > SEEN_IDS_CAP) {
+        const oldest = next.values().next().value
+        if (oldest === undefined) break
+        next.delete(oldest)
+      }
+      return next
+    })
     setLeadStates((current) => {
       const state = current[client.id] ?? client.leadState
       if (state && state !== 'new') return current
       return { ...current, [client.id]: 'seen' }
     })
   }, [])
+
+  // Called when the pitch chat finishes — stores the result so the row shows it
+  function handlePitchComplete(clientId: string, result: PitchChatResult) {
+    setPitches((current) => ({
+      ...current,
+      [clientId]: {
+        loading: false,
+        content: result.pitch,
+        error: null,
+        agent: {
+          grounded: true,
+          audited: true,
+          memoryHits: 0,
+        },
+      },
+    }))
+    setExpandedRow(clientId)
+    toast.success(`Pitch ready — cited ${result.flawsCited} verified problem${result.flawsCited === 1 ? '' : 's'}`)
+  }
 
   async function generatePitch(client: Client) {
     markLeadSeen(client)
@@ -318,11 +364,11 @@ export default function DiscoverPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientData: client }),
       })
-      const data = (await response.json()) as { pitch?: string; error?: string }
+      const data = (await response.json()) as { pitch?: string; error?: string; agent?: PitchAgentMeta }
       if (!response.ok || data.error) throw new Error(data.error || 'Pitch generation failed')
       setPitches((current) => ({
         ...current,
-        [client.id]: { loading: false, content: data.pitch ?? '', error: null },
+        [client.id]: { loading: false, content: data.pitch ?? '', error: null, agent: data.agent },
       }))
       setExpandedRow(client.id)
     } catch (error) {
@@ -348,9 +394,13 @@ export default function DiscoverPage() {
         body: JSON.stringify(client),
       })
       if (!response.ok) throw new Error('Save failed')
+      // The server dedupes on place id / name+location — a repeat save lands here
+      // with `duplicate: true` and still marks the row saved.
+      const result = await response.json()
+      if (result.duplicate) toast.message(`${client.businessName} is already saved`)
+      else toast.success(`${client.businessName} saved`)
       setSaved((current) => new Set([...current, client.id]))
       setLeadStates((current) => ({ ...current, [client.id]: 'saved' }))
-      toast.success(`${client.businessName} saved`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Save failed')
     } finally {
@@ -465,7 +515,7 @@ export default function DiscoverPage() {
     onIntel: (id) => setExpandedRow((current) => (current === id ? null : id)),
     onPitch: (id) => {
       const client = results.find((entry) => entry.id === id)
-      if (client) void generatePitch(client)
+      if (client) setChatClient(client)
     },
     onSave: (id) => {
       const client = results.find((entry) => entry.id === id)
@@ -705,7 +755,7 @@ export default function DiscoverPage() {
                     onIntel={() => setIntelDrawerClient(client)}
                     onSave={() => void saveLead(client)}
                     onIgnore={() => toggleIgnoreLead(client)}
-                    onPitch={() => void generatePitch(client)}
+                    onPitch={() => setChatClient(client)}
                     onSimilar={() => toast.message(`Lookalike search for ${client.businessName} lands in Phase 6.`)}
                     onToggleSelect={() => toggleSelect(client)}
                     onHover={(client) => markLeadSeen(client)}
@@ -847,9 +897,19 @@ export default function DiscoverPage() {
         onClose={() => setIntelDrawerClient(null)} 
         onSave={(c) => void saveLead(c)}
         onIgnore={(c) => toggleIgnoreLead(c)}
-        onPitch={(c) => void generatePitch(c)}
+        onPitch={(c) => setChatClient(c)}
         onSimilar={(c) => toast.message(`Lookalike search for ${c.businessName} lands in Phase 6.`)}
       />
+
+      <AnimatePresence>
+        {chatClient && (
+          <PitchChatModal
+            client={chatClient}
+            onClose={() => setChatClient(null)}
+            onComplete={handlePitchComplete}
+          />
+        )}
+      </AnimatePresence>
     </>
   )
 }

@@ -11,7 +11,7 @@ const terminals = [
       { text: '> gap detected: no website (312)', delay: 1100 },
       { text: '> gap detected: no social (198)', delay: 1600 },
       { text: '> top matches ranked by score', delay: 2100 },
-      { text: '✓ 847 clients ready', delay: 2600, green: true },
+      { text: '847 clients ready', delay: 2600, green: true },
     ],
   },
   {
@@ -22,7 +22,7 @@ const terminals = [
       { text: '> role: web developer', delay: 900 },
       { text: '> generating personalised pitch...', delay: 1300 },
       { text: '> quality score: 94/100', delay: 2200, red: true },
-      { text: '✓ pitch ready to send', delay: 2700, green: true },
+      { text: 'pitch ready to send', delay: 2700, green: true },
     ],
   },
   {
@@ -33,7 +33,7 @@ const terminals = [
       { text: '> sending LinkedIn DM...', delay: 1100 },
       { text: '> sending Instagram DM...', delay: 1600 },
       { text: '> 3 channels delivered', delay: 2100, red: true },
-      { text: '✓ client notified. awaiting reply.', delay: 2700, green: true },
+      { text: 'client notified. awaiting reply.', delay: 2700, green: true },
     ],
   },
   {
@@ -42,9 +42,9 @@ const terminals = [
       { text: '> client replied: "interested"', delay: 0 },
       { text: '> deal created: $2,800.00', delay: 600 },
       { text: '> escrow: payment link sent', delay: 1100 },
-      { text: '> stripe: funds secured ✓', delay: 1700, red: true },
+      { text: '> stripe: funds secured', delay: 1700, red: true },
       { text: '> work delivered + confirmed', delay: 2300 },
-      { text: '✓ $2,576 paid out (8% fee)', delay: 2900, green: true },
+      { text: '$2,576 paid out (8% fee)', delay: 2900, green: true },
     ],
   },
 ]
@@ -62,10 +62,12 @@ export default function AuthRightPanel() {
   const [cycling, setCycling] = useState(false)
 
   useEffect(() => {
-    setVisibleLines([])
-    setCycling(false)
     const current = terminals[terminalIndex]
     const timers: ReturnType<typeof setTimeout>[] = []
+
+    // Reset scheduled as a task rather than called synchronously in the effect
+    const reset = setTimeout(() => setVisibleLines([]), 0)
+    timers.push(reset)
 
     current.lines.forEach((line: TerminalLine, i: number) => {
       const t = setTimeout(() => {

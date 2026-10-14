@@ -2,6 +2,8 @@ import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Pitch from '@/lib/models/Pitch'
+import { linkedinProfileUrl } from '@/lib/socials'
+import { ensureSessionScope } from '@/lib/scope'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -14,7 +16,8 @@ export async function POST(req: NextRequest) {
   if (!pitchId) return NextResponse.json({ error: 'pitchId required' }, { status: 400 })
 
   await connectDB()
-  const pitch = await Pitch.findOne({ _id: pitchId, userId: session.user.id })
+  const scope = await ensureSessionScope(session.user.id)
+  const pitch = await Pitch.findOne({ _id: pitchId, orgId: scope.orgId })
   if (!pitch) return NextResponse.json({ error: 'Pitch not found' }, { status: 404 })
 
   const message = pitch.linkedinDm
@@ -27,7 +30,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     message,
-    profileUrl: linkedinUrl || pitch.businessLinkedin,
+    // Normalize: discovery stores full URLs; bare handles get the company path.
+    profileUrl: linkedinProfileUrl(linkedinUrl) ?? linkedinProfileUrl(pitch.businessLinkedin),
     instruction: 'Message copied to clipboard. Profile opened in new tab.',
   })
 }

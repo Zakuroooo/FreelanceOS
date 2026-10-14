@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import Groq from 'groq-sdk'
+import { GROQ_MODEL } from '@/lib/groq'
 
-const MODEL = 'llama-3.3-70b-versatile'
+/**
+ * The subset of a discovered lead this prompt actually reads. Named rather than left as
+ * `any` so that a rename on the discover side surfaces here instead of quietly
+ * interpolating `undefined` into the prompt. Every field is still unverified request
+ * JSON — each one is either guarded below or has a fallback.
+ */
+interface IntelInput {
+  businessName?: string
+  industry?: string
+  location?: string
+  metaDescription?: string
+  detectedGaps?: string[]
+  opportunityScore?: number
+}
 
 async function callGroq(prompt: string, systemPrompt: string) {
   const keys = [
@@ -22,7 +36,7 @@ async function callGroq(prompt: string, systemPrompt: string) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt },
         ],
-        model: MODEL,
+        model: GROQ_MODEL,
         temperature: 0.2,
         response_format: { type: 'json_object' },
       })
@@ -44,7 +58,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    let body: { clientData?: any }
+    let body: { clientData?: IntelInput }
     try {
       body = await req.json()
     } catch {
@@ -52,7 +66,7 @@ export async function POST(req: Request) {
     }
 
     const { clientData } = body
-    if (!clientData || !clientData.businessName) {
+    if (typeof clientData?.businessName !== 'string' || !clientData.businessName.trim()) {
       return NextResponse.json({ error: 'clientData is required' }, { status: 400 })
     }
 
@@ -62,7 +76,7 @@ Client: ${clientData.businessName}
 Industry: ${clientData.industry || 'Unknown'}
 Location: ${clientData.location || 'Unknown'}
 Description: ${clientData.metaDescription || 'None'}
-Gaps Detected: ${clientData.detectedGaps?.join(', ') || 'None'}
+Gaps Detected: ${Array.isArray(clientData.detectedGaps) ? clientData.detectedGaps.join(', ') || 'None' : 'None'}
 Opportunity Score: ${clientData.opportunityScore || 0}/100
 
 Return a JSON object with EXACTLY these keys:
@@ -99,9 +113,10 @@ Output valid JSON only. Do not wrap it in markdown block quotes.
     }
 
     return NextResponse.json(result, { status: 200 })
-  } catch (error: any) {
+  } catch (error) {
     console.error('[intel/POST] error:', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

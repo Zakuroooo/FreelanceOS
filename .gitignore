@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template, which holds variable names only and no values. The negation has
+# to come after the `.env*` line above — git applies the last matching pattern.
+!.env.example
 
 # vercel
 .vercel

@@ -8,9 +8,25 @@ import {
   useSpring,
   AnimatePresence,
 } from 'framer-motion'
+import {
+  FileText, ClipboardList, Droplet, MapPin, HelpCircle, Mail, PartyPopper,
+} from 'lucide-react'
 
 interface FreelancerCharacterProps {
   heroRef: React.RefObject<HTMLElement | null>
+}
+
+/** Five-point star drawn as an SVG path — replaces the old ★ text glyph. */
+function StarShape({ cx, cy, r }: { cx: number; cy: number; r: number }) {
+  const points: string[] = []
+  for (let i = 0; i < 10; i++) {
+    const rad = (Math.PI / 5) * i - Math.PI / 2
+    const radius = i % 2 === 0 ? r : r * 0.45
+    const x = (cx + radius * Math.cos(rad)).toFixed(2)
+    const y = (cy + radius * Math.sin(rad)).toFixed(2)
+    points.push(`${x},${y}`)
+  }
+  return <polygon points={points.join(' ')} />
 }
 
 const speeches = [
@@ -142,10 +158,10 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
             <rect x="48" y="189" width="84" height="5" rx="2" fill="var(--color-accent)" opacity="0.5" />
           </motion.g>
 
-          {/* Star eyes (STATE 4) */}
-          <motion.g style={{ opacity: starEyesOpacity }}>
-            <text x="68" y="72" fontSize="12" textAnchor="middle" fill="var(--color-warning)">★</text>
-            <text x="112" y="72" fontSize="12" textAnchor="middle" fill="var(--color-warning)">★</text>
+          {/* Star eyes (STATE 4) — SVG star shapes, no glyph glyphs */}
+          <motion.g style={{ opacity: starEyesOpacity }} fill="var(--color-warning)">
+            <StarShape cx={68} cy={68} r={7} />
+            <StarShape cx={112} cy={68} r={7} />
           </motion.g>
         </svg>
       </motion.div>
@@ -153,35 +169,35 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
       {/* Floating — CSS @keyframes only (CLAUDE.md rule 9) */}
 
       {/* STATE 1: Papers */}
-      <motion.div style={{ position: 'absolute', top: '60px', right: '-10px', opacity: paperOpacity, pointerEvents: 'none' }}>
-        <div className="animate-float-chaos" style={{ fontSize: '20px' }}>📄</div>
+      <motion.div style={{ position: 'absolute', top: '60px', right: '-10px', opacity: paperOpacity, pointerEvents: 'none', color: 'var(--color-text-secondary)' }}>
+        <FileText className="animate-float-chaos" size={20} />
       </motion.div>
-      <motion.div style={{ position: 'absolute', top: '90px', left: '-5px', opacity: paper2Opacity, pointerEvents: 'none' }}>
-        <div className="animate-float-chaos" style={{ fontSize: '16px', animationDelay: '0.5s' }}>📋</div>
+      <motion.div style={{ position: 'absolute', top: '90px', left: '-5px', opacity: paper2Opacity, pointerEvents: 'none', color: 'var(--color-text-secondary)' }}>
+        <ClipboardList className="animate-float-chaos" size={16} style={{ animationDelay: '0.5s' }} />
       </motion.div>
 
       {/* STATE 1: Sweat drop */}
       <motion.div
-        style={{ position: 'absolute', top: '50px', right: '30px', opacity: sweatOpacity, pointerEvents: 'none', fontSize: '14px' }}
+        style={{ position: 'absolute', top: '50px', right: '30px', opacity: sweatOpacity, pointerEvents: 'none', color: '#60a5fa' }}
         className="animate-sweat-drop"
       >
-        💧
+        <Droplet size={14} />
       </motion.div>
 
       {/* STATE 2: Pin + question */}
-      <motion.div style={{ position: 'absolute', top: '20px', right: '20px', opacity: pinOpacity, pointerEvents: 'none' }}>
-        <div className="animate-pin-bounce" style={{ fontSize: '22px' }}>📍</div>
+      <motion.div style={{ position: 'absolute', top: '20px', right: '20px', opacity: pinOpacity, pointerEvents: 'none', color: '#E5484D' }}>
+        <MapPin className="animate-pin-bounce" size={22} />
       </motion.div>
-      <motion.div style={{ position: 'absolute', top: '10px', left: '20px', opacity: questionOpacity, pointerEvents: 'none' }}>
-        <div className="animate-float-bob" style={{ fontSize: '20px' }}>❓</div>
+      <motion.div style={{ position: 'absolute', top: '10px', left: '20px', opacity: questionOpacity, pointerEvents: 'none', color: '#f59e0b' }}>
+        <HelpCircle className="animate-float-bob" size={20} />
       </motion.div>
 
       {/* STATE 3: Envelopes */}
-      <motion.div style={{ position: 'absolute', top: '80px', left: '0px', opacity: env1Opacity, pointerEvents: 'none' }}>
-        <div className="animate-fly-right" style={{ fontSize: '18px' }}>✉️</div>
+      <motion.div style={{ position: 'absolute', top: '80px', left: '0px', opacity: env1Opacity, pointerEvents: 'none', color: '#60a5fa' }}>
+        <Mail className="animate-fly-right" size={18} />
       </motion.div>
-      <motion.div style={{ position: 'absolute', top: '110px', left: '10px', opacity: env2Opacity, pointerEvents: 'none' }}>
-        <div className="animate-fly-right" style={{ fontSize: '18px', animationDelay: '0.6s' }}>✉️</div>
+      <motion.div style={{ position: 'absolute', top: '110px', left: '10px', opacity: env2Opacity, pointerEvents: 'none', color: '#60a5fa' }}>
+        <Mail className="animate-fly-right" size={18} style={{ animationDelay: '0.6s' }} />
       </motion.div>
 
       {/* STATE 4: Dollar + confetti */}
@@ -191,8 +207,8 @@ export default function FreelancerCharacter({ heroRef }: FreelancerCharacterProp
       <motion.div style={{ position: 'absolute', top: '0px', right: '30px', opacity: dollar2Opacity, pointerEvents: 'none' }}>
         <div className="animate-float-up" style={{ fontSize: '20px', color: 'var(--color-warning)', animationDelay: '0.4s' }}>$</div>
       </motion.div>
-      <motion.div style={{ position: 'absolute', top: '-10px', left: '50%', opacity: confettiOpacity, pointerEvents: 'none' }}>
-        <div className="animate-confetti-fall" style={{ fontSize: '14px' }}>🎊</div>
+      <motion.div style={{ position: 'absolute', top: '-10px', left: '50%', opacity: confettiOpacity, pointerEvents: 'none', color: '#f59e0b' }}>
+        <PartyPopper className="animate-confetti-fall" size={14} />
       </motion.div>
 
       {/* Speech bubble */}

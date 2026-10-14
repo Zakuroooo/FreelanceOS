@@ -49,7 +49,7 @@ function DockIcon({
     <a href={item.href} style={{ textDecoration: 'none' }}>
       <motion.div
         ref={ref}
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, backgroundColor: 'rgba(255,255,255,0)' }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}

@@ -4,8 +4,14 @@ import connectDB from '@/lib/db'
 import Pitch from '@/lib/models/Pitch'
 import Deal from '@/lib/models/Deal'
 import Client from '@/lib/models/Client'
-import { getGmailTokens, getFreshAccessToken, sendViaGmail, pitchToHtml } from '@/lib/gmail'
+import Notification from '@/lib/models/Notification'
+import { ensureSessionScope } from '@/lib/scope'
+import { pitchToHtml, isValidEmail } from '@/lib/gmail'
+import { resolveMailer, type Mailer } from '@/lib/mailer'
 import Groq from 'groq-sdk'
+import { GROQ_MODEL, GROQ_MODEL_FALLBACKS, isModelUnavailableError } from '@/lib/groq'
+import { researchWebsite, formatSiteResearch } from '@/lib/research'
+import { findSimilarPitches, formatMemoryBlock } from '@/lib/memory'
 
 const GROQ_KEYS = [
   process.env.GROQ_API_KEY_1!,
@@ -25,6 +31,8 @@ type BatchLead = {
   clientId?: string
   businessName: string
   businessEmail?: string
+  /** 'confirmed' = scraped from their own site; 'guessed' = info@domain pattern (MX-verified but unconfirmed). */
+  businessEmailConfidence?: string
   businessPhone?: string
   businessInstagram?: string
   businessLinkedin?: string
@@ -40,7 +48,12 @@ type Channels = {
   instagram?: boolean
 }
 
-async function generatePitch(lead: BatchLead, groq: Groq, userName: string): Promise<{
+async function generatePitch(
+  lead: BatchLead,
+  groq: Groq,
+  userName: string,
+  context: { liveResearch: string; memoryBlock: string },
+): Promise<{
   emailSubject: string
   emailBody: string
   whatsappMsg: string
@@ -49,31 +62,56 @@ async function generatePitch(lead: BatchLead, groq: Groq, userName: string): Pro
 }> {
   const gaps = lead.detectedGaps?.join(', ') || 'multiple digital marketing opportunities'
 
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-70b-versatile',
-    messages: [{
-      role: 'system',
-      content: `You are an expert freelance sales copywriter. Generate a personalized outreach pitch for a local business.
+  const messages = [{
+    role: 'system' as const,
+    content: `You are an expert freelance sales copywriter. Generate a personalized outreach pitch for a local business.
 Return ONLY valid JSON with these exact keys: emailSubject, emailBody, whatsappMsg, linkedinDm, instagramDm.
 - emailBody: Professional 200-250 word email pitch (no subject line)
 - whatsappMsg: Casual 80-word WhatsApp version
 - linkedinDm: Professional 100-word LinkedIn version
-- instagramDm: Casual Instagram DM (60 words, use emoji naturally)
+- instagramDm: Casual Instagram DM (60 words)
 The sender's name is: ${userName}`
-    }, {
-      role: 'user',
-      content: `Business: ${lead.businessName}
+  }, {
+    role: 'user' as const,
+    content: `Business: ${lead.businessName}
 Location: ${lead.businessLocation || 'India'}
 Website: ${lead.website || 'none'}
-Identified gaps: ${gaps}`
-    }],
-    temperature: 0.7,
-    max_tokens: 1200,
-    response_format: { type: 'json_object' },
-  })
+Identified gaps: ${gaps}
+${context.liveResearch ? `\n${context.liveResearch}` : ''}
+${context.memoryBlock ? `\n${context.memoryBlock}` : ''}`
+  }]
 
-  const raw = completion.choices[0]?.message?.content ?? '{}'
-  return JSON.parse(raw)
+  // Walk the model chain: GROQ_MODEL first, then the fallbacks. Groq retires hosted
+  // models without notice — this exact failure (404 model_not_found on
+  // llama-3.3-70b-versatile) took the whole pipeline down once already.
+  const models = [GROQ_MODEL, ...GROQ_MODEL_FALLBACKS.filter(m => m !== GROQ_MODEL)]
+  let lastErr: unknown
+  for (const model of models) {
+    try {
+      // gpt-oss / qwen are reasoning models — reasoning tokens count against the
+      // budget, so the cap must cover thinking plus ~500 words of JSON output.
+      const completion = await groq.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 4000,
+        response_format: { type: 'json_object' },
+      })
+      const raw = completion.choices[0]?.message?.content ?? '{}'
+      return JSON.parse(raw) as {
+        emailSubject: string
+        emailBody: string
+        whatsappMsg: string
+        linkedinDm: string
+        instagramDm: string
+      }
+    } catch (err) {
+      lastErr = err
+      if (!isModelUnavailableError(err)) throw err
+      console.warn(`[outreach/batch] model "${model}" unavailable, falling back:`, err instanceof Error ? err.message : err)
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error('All Groq models failed')
 }
 
 // POST /api/outreach/batch — SSE streaming batch send
@@ -94,17 +132,26 @@ export async function POST(req: NextRequest) {
   }
 
   await connectDB()
+  const scope = await ensureSessionScope(session.user.id)
 
-  // Load Gmail tokens if email channel selected
-  let accessToken: string | null = null
-  let gmailAddress: string | null = null
+  // Narrowed once — inside the stream closure TS loses the `session.user` guarantee.
+  const userId = session.user.id
+  const orgId = scope.orgId
+  const userName = session.user.name ?? 'Freelancer'
+
+  // Resolve a transport if the email channel is selected — the user's Gmail if it is
+  // connected and still refreshing, otherwise their own SMTP server.
+  let mailer: Mailer | null = null
+  // A dead Gmail connection used to be swallowed here, so the run reported every lead
+  // as generated and the user never learned that nothing was actually emailed. The
+  // reason is carried into the stream and announced instead.
+  let mailerError: string | null = null
   if (channels.email) {
-    const tokens = await getGmailTokens(session.user.id)
-    if (tokens) {
-      try {
-        accessToken = await getFreshAccessToken(session.user.id, tokens)
-        gmailAddress = tokens.gmailAddress
-      } catch { /* will fail gracefully per-lead */ }
+    const resolved = await resolveMailer(session.user.id)
+    if (resolved.ok) {
+      mailer = resolved.mailer
+    } else {
+      mailerError = `${resolved.error} Pitches will still be generated and saved.`
     }
   }
 
@@ -118,6 +165,12 @@ export async function POST(req: NextRequest) {
 
       send({ type: 'start', total: leads.length })
 
+      // Reuse the `error` event the feed already renders rather than inventing a type
+      // the client would silently drop. No `index`, so no lead row is marked failed.
+      if (mailerError) {
+        send({ type: 'error', businessName: 'Email', error: mailerError })
+      }
+
       // Run pitches in parallel — 4 at a time (one per Groq key)
       const results: Array<{ success: boolean; businessName: string; error?: string }> = []
 
@@ -129,12 +182,42 @@ export async function POST(req: NextRequest) {
           send({ type: 'generating', index: globalIndex, businessName: lead.businessName })
 
           try {
+            // Per-lead agent context: live site observation + retrieved memory.
+            // Both are best-effort — a slow/dead site must never stall a campaign.
+            let liveResearch = ''
+            try {
+              if (lead.website) {
+                liveResearch = formatSiteResearch(await researchWebsite(lead.website))
+              }
+            } catch { /* non-throwing by design */ }
+            let memoryBlock = ''
+            try {
+              memoryBlock = formatMemoryBlock(await findSimilarPitches(userId, {
+                gaps: lead.detectedGaps ?? [],
+                location: lead.businessLocation ?? null,
+              }))
+            } catch { /* memory is an enhancement, not a dependency */ }
+
             const groq = getGroqForIndex(globalIndex)
-            const pitchData = await generatePitch(lead, groq, session.user!.name ?? 'Freelancer')
+            const context = { liveResearch, memoryBlock }
+            let pitchData
+            try {
+              pitchData = await generatePitch(lead, groq, userName, context)
+            } catch (pitchErr) {
+              // Rate limits and transient 5xxs are routine across a batch. A spare
+              // key sits one rotation away — retry there before failing the lead.
+              console.warn(
+                `[outreach/batch] ${lead.businessName}: first attempt failed, retrying on next key:`,
+                pitchErr instanceof Error ? pitchErr.message : pitchErr
+              )
+              const nextGroq = getGroqForIndex(globalIndex + 1)
+              pitchData = await generatePitch(lead, nextGroq, userName, context)
+            }
 
             // Save pitch to DB
             const pitch = await Pitch.create({
-              userId:           session.user!.id,
+              userId:           userId,
+              orgId:            orgId,
               clientId:         lead.clientId,
               businessName:     lead.businessName,
               businessEmail:    lead.businessEmail,
@@ -155,38 +238,94 @@ export async function POST(req: NextRequest) {
 
             let emailSent = false
 
-            // Send email if channel selected + gmail connected + email available
-            if (channels.email && accessToken && gmailAddress && lead.businessEmail) {
-              const html = pitchToHtml(pitchData.emailBody, session.user!.name ?? 'Freelancer')
-              const emailResult = await sendViaGmail({
-                accessToken,
-                from:     gmailAddress,
-                fromName: session.user!.name ?? 'Freelancer',
+            // Send email if channel selected + a transport resolved + email available.
+            // Addresses come from scraped listings, so a malformed one is routine; check
+            // the shape here rather than spending an API call to be told the same.
+            // Auto-send ONLY verified addresses. Guessed info@domains bounce with
+            // "address does not exist" — those become handoff-queue items instead.
+            const emailVerified = lead.businessEmailConfidence !== 'guessed'
+            if (channels.email && mailer && lead.businessEmail && isValidEmail(lead.businessEmail) && emailVerified) {
+              const html = pitchToHtml(pitchData.emailBody, userName)
+              const emailResult = await mailer.send({
+                fromName: userName,
                 to:       lead.businessEmail,
                 subject:  pitchData.emailSubject,
                 html,
               })
 
+              // `error: undefined` used to be written into `$set` on the success path,
+              // which is a stored field on some driver/schema paths and reads back as a
+              // failure marker. Only set it when there is something to record.
               await Pitch.findByIdAndUpdate(pitch._id, {
                 $set: {
-                  'sentChannels.email': {
-                    sentAt: new Date(),
-                    status: emailResult.success ? 'sent' : 'failed',
-                    error:  emailResult.success ? undefined : emailResult.error,
-                  },
+                  'sentChannels.email': emailResult.success
+                    ? { sentAt: new Date(), status: 'sent' }
+                    : { sentAt: new Date(), status: 'failed', error: emailResult.error },
                   ...(emailResult.success ? { overallStatus: 'sent' } : {}),
                 }
               })
 
               emailSent = emailResult.success
               send({ type: 'email_sent', index: globalIndex, businessName: lead.businessName, success: emailResult.success })
+            } else if (channels.email && mailer && lead.businessEmail && !emailVerified) {
+              // Guessed address — pitch is saved and lands in the send queue with a
+              // verify-first warning instead of a guaranteed bounce.
+              send({
+                type: 'channel_ready',
+                index: globalIndex,
+                businessName: lead.businessName,
+                pitchId: String(pitch._id),
+                channel: 'email-unverified',
+                url: `mailto:${lead.businessEmail}?subject=${encodeURIComponent(pitchData.emailSubject)}&body=${encodeURIComponent(pitchData.emailBody.slice(0, 1800))}`,
+                message: `${lead.businessEmail} is an unverified guess (info@domain pattern). Confirm the address, then send.`,
+              })
+            }
+
+            // Non-email channels have no sanctioned silent-send API. Instead of the
+            // campaign pretending they went out, hand the user a ready-to-fire
+            // deep link per lead — one tap opens the chat/app with text pre-filled.
+            const channelLinks: Array<{ channel: string; url: string }> = []
+            if (channels.whatsapp && lead.businessPhone) {
+              const phone = lead.businessPhone.replace(/[\s\-()]/g, '').replace(/^\+/, '')
+              channelLinks.push({
+                channel: 'whatsapp',
+                url: `https://wa.me/${phone}?text=${encodeURIComponent(pitchData.whatsappMsg || pitchData.emailBody.slice(0, 900))}`,
+              })
+            }
+            if (channels.linkedin && lead.businessLinkedin) {
+              channelLinks.push({ channel: 'linkedin', url: lead.businessLinkedin })
+            }
+            if (channels.instagram && lead.businessInstagram) {
+              // Discovery stores full URLs — never concatenate handles onto them.
+              const igUrl = lead.businessInstagram.startsWith('http')
+                ? lead.businessInstagram
+                : `https://www.instagram.com/${lead.businessInstagram.replace(/^@/, '').replace(/\/+$/, '')}/`
+              channelLinks.push({ channel: 'instagram', url: igUrl })
+            }
+            for (const link of channelLinks) {
+              await Pitch.findByIdAndUpdate(pitch._id, {
+                $set: { [`sentChannels.${link.channel}`]: { sentAt: new Date(), status: 'ready' } },
+              })
+              send({
+                type: 'channel_ready',
+                index: globalIndex,
+                businessName: lead.businessName,
+                pitchId: String(pitch._id),
+                channel: link.channel,
+                url: link.url,
+                message:
+                  link.channel === 'whatsapp' ? pitchData.whatsappMsg :
+                  link.channel === 'linkedin' ? pitchData.linkedinDm :
+                  pitchData.instagramDm,
+              })
             }
 
             // Auto-create deal
-            const existingDeal = await Deal.findOne({ pitchId: pitch._id, userId: session.user!.id })
+            const existingDeal = await Deal.findOne({ pitchId: pitch._id, userId })
             if (!existingDeal) {
               await Deal.create({
-                userId:           session.user!.id,
+                userId:           userId,
+                orgId:            orgId,
                 pitchId:          pitch._id,
                 clientId:         lead.clientId,
                 businessName:     lead.businessName,
@@ -202,7 +341,13 @@ export async function POST(req: NextRequest) {
 
             // Update client status if clientId provided
             if (lead.clientId) {
-              await Client.findByIdAndUpdate(lead.clientId, { status: 'pitched' })
+              // Scoped by userId: `findByIdAndUpdate` took an id straight from the
+              // request body, so a crafted `clientId` could flip another user's client
+              // to 'pitched'.
+              await Client.findOneAndUpdate(
+                { _id: lead.clientId, userId },
+                { status: 'pitched' }
+              )
             }
 
             results.push({ success: true, businessName: lead.businessName })
@@ -218,11 +363,36 @@ export async function POST(req: NextRequest) {
         await Promise.all(batchPromises)
       }
 
+      const successCount = results.filter(r => r.success).length
+      const failedCount  = results.filter(r => !r.success).length
+
+      // Feed the notifications inbox (Module 4) so campaigns leave a trace outside
+      // this ephemeral SSE window.
+      try {
+        await Notification.create({
+          userId,
+          orgId,
+          type: 'campaign_complete',
+          message: failedCount > 0
+            ? `Campaign finished: ${successCount} sent, ${failedCount} failed across ${leads.length} lead${leads.length > 1 ? 's' : ''}.`
+            : `Campaign complete: ${successCount} pitch${successCount === 1 ? '' : 'es'} sent successfully.`,
+        })
+        const failedEmails = results.filter(r => !r.success && r.error)
+        if (failedEmails.length > 0) {
+          await Notification.create({
+            userId,
+            orgId,
+            type: 'email_failed',
+            message: `${failedEmails.length} lead${failedEmails.length > 1 ? 's' : ''} could not be processed — check the campaign log for details.`,
+          })
+        }
+      } catch { /* a feed write must never fail the campaign response */ }
+
       send({
         type:    'complete',
         total:   leads.length,
-        success: results.filter(r => r.success).length,
-        failed:  results.filter(r => !r.success).length,
+        success: successCount,
+        failed:  failedCount,
       })
 
       controller.close()

@@ -160,7 +160,7 @@ function IconContainer({
     <a href={href}>
       <motion.div
         ref={ref}
-        style={{ width, height }}
+        style={{ width, height, backgroundColor: 'rgba(255,255,255,0)' }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className="aspect-square rounded-full flex items-center justify-center relative"
