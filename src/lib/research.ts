@@ -1,3 +1,4 @@
+import { safeFetch } from './safeFetch'
 /**
  * Live website observation — the "act/observe" tool of the pitch agent.
  *
@@ -94,9 +95,8 @@ export async function researchWebsite(rawUrl: string): Promise<SiteResearch> {
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       signal: controller.signal,
-      redirect: 'follow',
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; FreelanceOSBot/1.0; +research)' },
     })
 
