@@ -11,7 +11,6 @@ const LINKS = {
     { label: 'Studio',       href: '/#studio' },
     { label: 'Clients',      href: '/#clients' },
     { label: 'Pricing',      href: '/#pricing' },
-    { label: 'Blog',         href: '/blog' },
   ],
   Socials: [
     { label: 'Facebook',     href: 'https://facebook.com', target: '_blank' },
@@ -19,15 +18,9 @@ const LINKS = {
     { label: 'Twitter',      href: 'https://twitter.com', target: '_blank' },
     { label: 'LinkedIn',     href: 'https://linkedin.com', target: '_blank' },
   ],
-  Legal: [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy',  href: '/cookies' },
-  ],
   Register: [
     { label: 'Sign Up',        href: '/signup' },
     { label: 'Login',          href: '/login' },
-    { label: 'Forgot Password', href: '/forgot-password' },
   ]
 }
 

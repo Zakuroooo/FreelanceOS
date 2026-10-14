@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Throwaway CommonJS probes for third-party APIs, run by hand with `node`. They are
+    // already untracked (see .gitignore's `test_*.js`) and are not part of the app, so
+    // linting them as app source only produces noise about `require()`.
+    "test-*.js",
+    "test_*.js",
   ]),
 ]);
 

@@ -7,15 +7,36 @@ import { motion, type Variants, type Easing } from 'framer-motion'
 import {
   Users, Send, Handshake, DollarSign,
   ArrowRight, TrendingUp, Search, Zap, Bell,
+  Trophy, Skull, MailWarning, Sparkles, Megaphone,
 } from 'lucide-react'
 import AnimatedCounter from '@/components/ui/AnimatedCounter'
+import OnboardingChecklist from '@/components/dashboard/OnboardingChecklist'
+import { timeAgo } from '@/lib/format'
 
 /* ─── types ──────────────────────────────────────────── */
+interface ActivityItem {
+  _id: string
+  type: string
+  message: string
+  read: boolean
+  createdAt: string
+}
+
 interface StatsData {
   totalClients: number
   pitchesSent:  number
   activeDeals:  number
   totalEarned:  number
+  weekly?:      { clients: number; pitches: number; deals: number }
+  recentActivity?: ActivityItem[]
+}
+
+const ACTIVITY_META: Record<string, { color: string; Icon: typeof Bell }> = {
+  deal_won:          { color: '#4ade80', Icon: Trophy },
+  deal_lost:         { color: '#9ca3af', Icon: Skull },
+  email_failed:      { color: '#ef4444', Icon: MailWarning },
+  campaign_complete: { color: '#60a5fa', Icon: Megaphone },
+  pitch_generated:   { color: '#a78bfa', Icon: Sparkles },
 }
 
 /* ─── animation ──────────────────────────────────────── */
@@ -40,11 +61,15 @@ const ACCENT_BG     = 'rgba(229,72,77,0.10)'
 const ACCENT_BORDER = 'rgba(229,72,77,0.22)'
 
 /* ─── stat cards ─────────────────────────────────────── */
-const STAT_CARDS = [
-  { key: 'totalClients' as keyof StatsData, label: 'CLIENTS FOUND',  icon: Users,     isCurrency: false, trend: '+12% vs last month' },
-  { key: 'pitchesSent'  as keyof StatsData, label: 'PITCHES SENT',   icon: Send,      isCurrency: false, trend: '+8% vs last month'  },
-  { key: 'activeDeals'  as keyof StatsData, label: 'ACTIVE DEALS',   icon: Handshake, isCurrency: false, trend: '+3 new this week'    },
-  { key: 'totalEarned'  as keyof StatsData, label: 'TOTAL EARNED',   icon: DollarSign,isCurrency: true,  trend: '+24% vs last month'  },
+type StatKey = 'totalClients' | 'pitchesSent' | 'activeDeals' | 'totalEarned'
+const STAT_CARDS: Array<{
+  key: StatKey; label: string; icon: typeof Users;
+  isCurrency: boolean; weeklyKey?: 'clients' | 'pitches' | 'deals'
+}> = [
+  { key: 'totalClients', label: 'CLIENTS FOUND', icon: Users,     isCurrency: false, weeklyKey: 'clients' },
+  { key: 'pitchesSent',  label: 'PITCHES SENT',  icon: Send,      isCurrency: false, weeklyKey: 'pitches' },
+  { key: 'activeDeals',  label: 'ACTIVE DEALS',  icon: Handshake, isCurrency: false, weeklyKey: 'deals'   },
+  { key: 'totalEarned',  label: 'TOTAL EARNED',  icon: DollarSign,isCurrency: true   },
 ]
 
 /* ─── quick actions ─────────────────────────────────── */
@@ -197,6 +222,9 @@ export default function DashboardOverviewPage() {
           </div>
         </motion.div>
 
+        {/* ── Activation checklist (auto-hides when done) ── */}
+        <OnboardingChecklist />
+
         {/* ── Stats grid ────────────────────────────────── */}
         <div className="dash-grid-4" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:32 }}>
           {STAT_CARDS.map((card, i) => {
@@ -240,9 +268,16 @@ export default function DashboardOverviewPage() {
                 </div>
 
                 {loading ? <Skeleton height={14} width="70%" /> : (
-                  <div style={{ display:'flex', alignItems:'center', gap:5,
-                    fontSize:11, color:'rgba(255,255,255,0.4)', fontWeight:500 }}>
-                    <TrendingUp size={11} />{card.trend}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5,
+                    fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+                    <TrendingUp size={11} />
+                    {card.weeklyKey
+                      ? (stats?.weekly?.[card.weeklyKey] ?? 0) > 0
+                        ? `+${stats?.weekly?.[card.weeklyKey]} this week`
+                        : 'None added this week'
+                      : stats && stats.totalEarned > 0
+                        ? 'From closed deals'
+                        : 'Close a deal to start'}
                   </div>
                 )}
               </motion.div>
@@ -261,32 +296,82 @@ export default function DashboardOverviewPage() {
               boxShadow:'inset 0 1px 0 rgba(255,255,255,0.06)' }}
           >
             <p style={{ fontSize:11, fontWeight:600, letterSpacing:'0.12em',
-              textTransform:'uppercase', color:'var(--color-text-muted)', marginBottom:20 }}>
+              textTransform:'uppercase', color:'var(--color-text-muted)', marginBottom:20,
+              display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               Recent Activity
+              {stats?.recentActivity && stats.recentActivity.length > 0 && (
+                <Link href="/notifications" style={{ fontSize:10, letterSpacing:'0.06em',
+                  color:'rgba(255,255,255,0.35)', textDecoration:'none',
+                  textTransform:'uppercase' }}>
+                  View all →
+                </Link>
+              )}
             </p>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
-              justifyContent:'center', padding:'48px 24px', textAlign:'center', gap:12 }}>
-              <p style={{ fontSize:36, fontWeight:700, color:'rgba(255,255,255,0.05)',
-                letterSpacing:'-0.04em', lineHeight:1 }}>◈</p>
-              <p style={{ fontSize:14, fontWeight:500, color:'rgba(255,255,255,0.18)', letterSpacing:'-0.01em' }}>
-                No activity yet
-              </p>
-              <p style={{ fontSize:13, color:'var(--color-text-muted)' }}>
-                Find clients and send your first pitch to get started.
-              </p>
-              <Link
-                href="/discover"
-                style={{ display:'inline-flex', alignItems:'center', gap:6,
-                  padding:'8px 16px', background:'rgba(255,255,255,0.04)',
-                  border:'1px solid rgba(255,255,255,0.08)', borderRadius:6,
-                  fontSize:12, fontWeight:500, color:'rgba(255,255,255,0.45)',
-                  textDecoration:'none', marginTop:4, transition:'border-color 0.15s,color 0.15s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.16)'; e.currentTarget.style.color='rgba(255,255,255,0.8)' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; e.currentTarget.style.color='rgba(255,255,255,0.45)' }}
-              >
-                Discover clients <ArrowRight size={11} />
-              </Link>
-            </div>
+            {(stats?.recentActivity?.length ?? 0) === 0 ? (
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'center',
+                justifyContent:'center', padding:'48px 24px', textAlign:'center', gap:12 }}>
+                <p style={{ fontSize:36, fontWeight:700, color:'rgba(255,255,255,0.05)',
+                  letterSpacing:'-0.04em', lineHeight:1 }}>◈</p>
+                <p style={{ fontSize:14, fontWeight:500, color:'rgba(255,255,255,0.18)', letterSpacing:'-0.01em' }}>
+                  No activity yet
+                </p>
+                <p style={{ fontSize:13, color:'var(--color-text-muted)' }}>
+                  Find clients and send your first pitch to get started.
+                </p>
+                <Link
+                  href="/discover"
+                  style={{ display:'inline-flex', alignItems:'center', gap:6,
+                    padding:'8px 16px', background:'rgba(255,255,255,0.04)',
+                    border:'1px solid rgba(255,255,255,0.08)', borderRadius:6,
+                    fontSize:12, fontWeight:500, color:'rgba(255,255,255,0.45)',
+                    textDecoration:'none', marginTop:4, transition:'border-color 0.15s,color 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.16)'; e.currentTarget.style.color='rgba(255,255,255,0.8)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; e.currentTarget.style.color='rgba(255,255,255,0.45)' }}
+                >
+                  Discover clients <ArrowRight size={11} />
+                </Link>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column' }}>
+                {stats!.recentActivity!.slice(0, 5).map((item, i) => {
+                  const meta = ACTIVITY_META[item.type] ?? { color: '#E5484D', Icon: Bell }
+                  const { Icon } = meta
+                  return (
+                    <motion.div
+                      key={item._id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.06, duration: 0.3 }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '11px 0',
+                        borderBottom: i < Math.min(stats!.recentActivity!.length, 5) - 1
+                          ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                      }}
+                    >
+                      <div style={{
+                        width: 28, height: 28, borderRadius: 6, flexShrink: 0,
+                        background: `${meta.color}14`, border: `1px solid ${meta.color}2e`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Icon size={13} color={meta.color} />
+                      </div>
+                      <span style={{
+                        flex: 1, minWidth: 0, overflow: 'hidden',
+                        textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        fontSize: 12.5, lineHeight: 1.45,
+                        color: item.read ? 'rgba(255,255,255,0.55)' : 'var(--color-text-primary)',
+                      }}>
+                        {item.message}
+                      </span>
+                      <span style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
+                        {timeAgo(item.createdAt)}
+                      </span>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            )}
           </motion.div>
 
           {/* Quick Actions */}

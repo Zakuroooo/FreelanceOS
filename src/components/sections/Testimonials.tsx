@@ -85,7 +85,7 @@ function CardTemplate({ t }: { t: typeof TESTIMONIALS[0] }) {
   return (
     <>
       <div style={{ fontSize: '13px', fontWeight: 700, color: '#FAFAFA', letterSpacing: '-0.01em' }}>
-        "{t.quote}"
+        “{t.quote}”
       </div>
       <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
         {t.text}

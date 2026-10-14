@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { Check, X } from 'lucide-react';
 
 export interface TerminalProps {
   commands: string[];
@@ -130,11 +131,11 @@ export const Terminal: React.FC<TerminalProps> = ({
             {record.output && record.output.length > 0 && (
               <div className="mt-2 space-y-1.5 text-gray-400">
                 {record.output.map((line, j) => (
-                  <div key={j} className="flex gap-2">
+                  <div key={j} className="flex gap-2 items-center">
                     {line.startsWith('✔') ? (
-                      <span className="text-green-400 shrink-0">✔</span>
+                      <Check className="text-green-400 shrink-0" size={13} strokeWidth={3} />
                     ) : line.startsWith('✖') ? (
-                      <span className="text-red-400 shrink-0">✖</span>
+                      <X className="text-red-400 shrink-0" size={13} strokeWidth={3} />
                     ) : null}
                     <span className="break-all">{line.replace(/^[✔✖]\s/, '')}</span>
                   </div>

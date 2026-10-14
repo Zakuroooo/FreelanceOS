@@ -47,8 +47,10 @@ function TypewriterCycle({ words, speed = 80, pause = 1800 }: { words: string[];
     } else if (deleting && charIndex > 0) {
       timer = setTimeout(() => setCharIndex((c) => c - 1), speed / 2)
     } else if (deleting && charIndex === 0) {
-      setDeleting(false)
-      setWordIndex((i) => (i + 1) % words.length)
+      timer = setTimeout(() => {
+        setDeleting(false)
+        setWordIndex((i) => (i + 1) % words.length)
+      }, speed / 2)
     }
 
     return () => clearTimeout(timer)
@@ -75,7 +77,10 @@ function TypewriterCycle({ words, speed = 80, pause = 1800 }: { words: string[];
 
 export default function Hero() {
   const [ready, setReady] = useState(false)
-  useEffect(() => { setReady(true) }, [])
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setReady(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
 
   return (
     <section

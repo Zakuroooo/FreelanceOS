@@ -14,6 +14,9 @@ const DASHBOARD_PREFIXES = [
   '/deals',
   '/notifications',
   '/settings',
+  // Keep in sync with src/proxy.ts — /team was missing here and rendered with
+  // BOTH the landing chrome and the dashboard sidebar.
+  '/team',
 ]
 
 export default function LandingShell({ children }: { children: React.ReactNode }) {

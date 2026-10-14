@@ -1,12 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import Logo from '@/components/ui/Logo'
 import AuthRightPanel from '@/components/auth/AuthRightPanel'
+
+/**
+ * NextAuth sends every provider failure to `pages.error` — which is this page — as
+ * `?error=<code>`. Nothing read that param, so a failed Google sign-in landed on a
+ * blank login form with no explanation. These map to the existing error line below.
+ */
+const AUTH_ERRORS: Record<string, string> = {
+  OAuthAccountNotLinked: 'That email is already registered with a password. Sign in with your password instead.',
+  OAuthSignin:           'Could not reach the sign-in provider. Please try again.',
+  OAuthCallback:         'The provider rejected the sign-in. Please try again.',
+  OAuthCallbackError:    'The provider rejected the sign-in. Please try again.',
+  AccessDenied:          'Sign-in was denied. Your provider must supply a verified email address.',
+  Verification:          'That sign-in link has expired. Request a new one.',
+  CredentialsSignin:     'Invalid email or password',
+  Configuration:         'Sign-in is misconfigured on the server. Please try again later.',
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,6 +31,21 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Read directly off `window.location` rather than `useSearchParams`, which would
+  // force this page under a Suspense boundary and change how it renders.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('error')
+    if (!code) return
+    // `set-state-in-effect` is aimed at effects that loop or cascade. This one reads a
+    // browser-only value exactly once at mount and has an empty dependency array, so it
+    // cannot re-run. Seeding the state lazily instead would read `window` during the
+    // server render and desync hydration, which is the worse trade.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setError(AUTH_ERRORS[code] ?? 'Could not sign you in. Please try again.')
+    // Drop the param so a refresh does not resurrect a stale message.
+    window.history.replaceState({}, '', window.location.pathname)
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -194,9 +225,6 @@ export default function LoginPage() {
               <label style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif', letterSpacing: '0.04em' }}>
                 PASSWORD
               </label>
-              <Link href="/forgot-password" style={{ fontSize: '12px', color: 'rgba(196,20,37,0.7)', textDecoration: 'none', fontFamily: 'Inter, sans-serif' }}>
-                Forgot?
-              </Link>
             </div>
             <div style={{ position: 'relative' }}>
               <input

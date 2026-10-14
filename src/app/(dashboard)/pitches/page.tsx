@@ -4,10 +4,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, MessageCircle, Link2, Camera,
-  Search, CheckCircle, RefreshCw,
-  Zap, Trash2, Eye, Send,
+  Search, RefreshCw,
+  Zap, Trash2, Eye, Send, PenLine, AlertTriangle,
   Wifi, WifiOff,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { timeAgo } from '@/lib/format'
+import { PageHeader } from '@/components/ui/kit'
 // Link2 as LinkedIn icon, Camera as Instagram icon
 const LinkedinIcon = Link2
 const InstagramIcon = Camera
@@ -39,21 +42,11 @@ interface PitchData {
   createdAt: string
 }
 
-interface GmailStatus {
+interface EmailStatus {
   connected: boolean
-  gmailAddress?: string
-  connectedAt?: string
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  const hrs  = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-  if (days > 0) return `${days}d ago`
-  if (hrs > 0)  return `${hrs}h ago`
-  if (mins > 0) return `${mins}m ago`
-  return 'just now'
+  channel?: 'gmail' | 'smtp' | null
+  fromAddress?: string | null
+  hint?: string
 }
 
 const STATUS_CONFIG = {
@@ -95,46 +88,115 @@ function ChannelDots({ sentChannels }: { sentChannels: PitchData['sentChannels']
   )
 }
 
+interface PitchStats {
+  total: number
+  sent: number
+  replied: number
+  approved: number
+}
+
 export default function PitchesPage() {
   const [pitches, setPitches]         = useState<PitchData[]>([])
+  const [stats, setStats]             = useState<PitchStats>({ total: 0, sent: 0, replied: 0, approved: 0 })
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [gmailStatus, setGmailStatus] = useState<GmailStatus | null>(null)
+  const [emailStatus, setEmailStatus] = useState<EmailStatus | null>(null)
   const [selectedPitch, setSelectedPitch] = useState<PitchData | null>(null)
   const [previewPitch, setPreviewPitch]   = useState<PitchData | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
 
-  const showToast = useCallback((msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type })
-    setTimeout(() => setToast(null), 3000)
-  }, [])
-
+  // Event-handler reload (refresh button). The mount effect below mirrors this
+  // logic as a promise chain, since synchronous setState inside an effect body
+  // causes cascading renders.
   const loadPitches = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({ limit: '50' })
       if (statusFilter !== 'all') params.set('status', statusFilter)
       const res  = await fetch(`/api/pitches?${params}`)
+      if (!res.ok) throw new Error(`Failed to load pitches (${res.status})`)
       const data = await res.json()
       setPitches(data.pitches ?? [])
+      // Server-side stats cover the whole collection — the old client-side numbers
+      // were derived from the filtered subset and collapsed under any active filter.
+      if (data.stats) setStats(data.stats)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to load pitches')
     } finally {
       setLoading(false)
     }
   }, [statusFilter])
 
-  useEffect(() => { loadPitches() }, [loadPitches])
-
   useEffect(() => {
-    fetch('/api/gmail/status').then(r => r.json()).then(setGmailStatus)
+    let active = true
+    const params = new URLSearchParams({ limit: '50' })
+    if (statusFilter !== 'all') params.set('status', statusFilter)
+    fetch(`/api/pitches?${params}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to load pitches (${res.status})`)
+        return res.json()
+      })
+      .then(data => {
+        if (!active) return
+        setPitches(data.pitches ?? [])
+        if (data.stats) setStats(data.stats)
+      })
+      .catch((err: unknown) => {
+        if (active) toast.error(err instanceof Error ? err.message : 'Failed to load pitches')
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [statusFilter])
+
+  // One endpoint covers BOTH transports — SMTP-only users used to be told to
+  // "connect Gmail" while their working SMTP config was ignored.
+  useEffect(() => {
+    fetch('/api/email/status').then(r => r.json()).then(setEmailStatus)
+  }, [])
+
+  // The OAuth callback lands here with ?gmail=connected|error&reason=… — surface
+  // what actually happened instead of bouncing the user back silently.
+  const [oauthNotice, setOauthNotice] = useState<string | null>(null)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('gmail')
+    if (!status) return
+    const reason = params.get('reason')
+    window.history.replaceState(null, '', '/pitches')
+    if (status === 'connected') {
+      toast.success('Gmail connected — campaigns can now send from your mailbox')
+      fetch('/api/email/status').then(r => r.json()).then(setEmailStatus)
+      return
+    }
+    if (reason === 'denied') {
+      // Deferred to a task — the rule flags synchronous setState inside effects.
+      const t = setTimeout(() => {
+        setOauthNotice(
+          'Google blocked the connection. Your Google Cloud app is in "Testing" mode, so only whitelisted test users can grant gmail access. Fix: console.cloud.google.com → APIs & Services → OAuth consent screen → Test users → add your Gmail address. Or use SMTP in Settings — it needs no Google approval.'
+        )
+      }, 0)
+      return () => clearTimeout(t)
+    }
+    const t2 = setTimeout(() => {
+      setOauthNotice('Gmail connection failed. You can retry, or use SMTP in Settings — it works with any mailbox.')
+    }, 0)
+    return () => clearTimeout(t2)
   }, [])
 
   const deletePitch = async (id: string) => {
-    await fetch(`/api/pitches/${id}`, { method: 'DELETE' })
-    setPitches(prev => prev.filter(p => p._id !== id))
-    setDeleteConfirm(null)
-    showToast('Pitch deleted')
+    try {
+      const res = await fetch(`/api/pitches/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`Delete failed (${res.status})`)
+      setPitches(prev => prev.filter(p => p._id !== id))
+      setStats(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }))
+      setDeleteConfirm(null)
+      toast.success('Pitch deleted')
+    } catch (err) {
+      // The row used to vanish optimistically even when the delete failed server-side
+      toast.error(err instanceof Error ? err.message : 'Failed to delete pitch')
+      setDeleteConfirm(null)
+    }
   }
 
   const filtered = pitches.filter(p => {
@@ -142,38 +204,56 @@ export default function PitchesPage() {
     return p.businessName.toLowerCase().includes(q) || (p.businessLocation ?? '').toLowerCase().includes(q)
   })
 
-  const stats = {
-    total:   pitches.length,
-    sent:    pitches.filter(p => p.overallStatus === 'sent' || p.overallStatus === 'replied').length,
-    replied: pitches.filter(p => p.overallStatus === 'replied').length,
-  }
-
   return (
     <div style={{ minHeight: '100vh', color: '#FAFAFA' }}>
 
-      {/* Toast */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: -20, x: '-50%' }}
-            style={{
-              position: 'fixed', top: 24, left: '50%',
-              background: toast.type === 'success' ? 'rgba(74,222,128,0.95)' : 'rgba(239,68,68,0.95)',
-              color: '#000', padding: '10px 20px', borderRadius: 8,
-              fontSize: 13, fontWeight: 600, zIndex: 9999,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            }}
-          >
-            {toast.msg}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Gmail OAuth failure — actionable, with the SMTP escape hatch */}
+      {oauthNotice && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+          style={{
+            background: 'rgba(245,158,11,0.07)',
+            border: '1px solid rgba(245,158,11,0.3)',
+            borderRadius: 12, padding: '14px 20px', marginBottom: 24,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AlertTriangle size={16} color='#f59e0b' />
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>
+              {oauthNotice}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <a
+              href='https://console.cloud.google.com/apis/credentials/consent'
+              target='_blank' rel='noreferrer'
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
+                background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.35)',
+                color: '#f59e0b', textDecoration: 'none', whiteSpace: 'nowrap',
+              }}
+            >
+              Open Google Console →
+            </a>
+            <button
+              onClick={() => setOauthNotice(null)}
+              style={{
+                background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
+                cursor: 'pointer', fontSize: 12,
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </motion.div>
+      )}
 
-      {/* Gmail Banner */}
+      {/* Email transport banner — reflects Gmail AND SMTP, whichever is live */}
       <AnimatePresence>
-        {gmailStatus !== null && !gmailStatus.connected && (
+        {emailStatus !== null && !emailStatus.connected && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -188,24 +268,40 @@ export default function PitchesPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <WifiOff size={16} color='#E5484D' />
               <span style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
-                Connect your Gmail to send pitches automatically from your own email
+                Connect your real Gmail in one tap — pitches send from your own address
               </span>
             </div>
-            <a
-              href='/api/gmail/connect'
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '8px 16px', borderRadius: 8,
-                background: 'rgba(196,20,37,0.3)', border: '1px solid rgba(196,20,37,0.5)',
-                color: '#ff4455', fontSize: 12, fontWeight: 700,
-                textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-              }}
-            >
-              <Zap size={12} /> Connect Gmail →
-            </a>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <a
+                href='/api/gmail/connect'
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 8,
+                  background: 'linear-gradient(135deg, #C41425, #E5484D)',
+                  border: 'none', color: '#fff', fontSize: 12, fontWeight: 700,
+                  textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                  boxShadow: '0 4px 16px rgba(196,20,37,0.35)',
+                }}
+              >
+                <Zap size={12} /> Connect Gmail — one tap →
+              </a>
+              <a
+                href='/settings'
+                title='Works instantly with any provider while Gmail verification is pending'
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '8px 16px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+                  color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 500,
+                  textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+                }}
+              >
+                SMTP instead
+              </a>
+            </div>
           </motion.div>
         )}
-        {gmailStatus?.connected && (
+        {emailStatus?.connected && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -220,14 +316,26 @@ export default function PitchesPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Wifi size={14} color='#4ade80' />
               <span style={{ fontSize: 13, color: '#4ade80', fontWeight: 500 }}>
-                Sending from: {gmailStatus.gmailAddress}
+                Sending from: {emailStatus.fromAddress}
+                <span style={{
+                  marginLeft: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+                  padding: '2px 6px', borderRadius: 4,
+                  color: emailStatus.channel === 'smtp' ? '#60a5fa' : '#4ade80',
+                  border: `1px solid ${emailStatus.channel === 'smtp' ? 'rgba(96,165,250,0.4)' : 'rgba(74,222,128,0.4)'}`,
+                }}>{emailStatus.channel}</span>
               </span>
             </div>
             <button
               onClick={async () => {
-                await fetch('/api/gmail/disconnect', { method: 'DELETE' })
-                setGmailStatus({ connected: false })
-                showToast('Gmail disconnected')
+                const channel = emailStatus.channel
+                if (channel === 'smtp') {
+                  await fetch('/api/settings/smtp', { method: 'DELETE' })
+                  toast.success('SMTP disconnected')
+                } else {
+                  await fetch('/api/gmail/disconnect', { method: 'DELETE' })
+                  toast.success('Gmail disconnected')
+                }
+                setEmailStatus({ connected: false })
               }}
               style={{
                 background: 'none', border: '1px solid rgba(255,255,255,0.1)',
@@ -241,15 +349,11 @@ export default function PitchesPage() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.04em', margin: 0, color: '#FAFAFA' }}>
-          Pitch Command Center
-        </h1>
-        <p style={{ margin: '6px 0 0', fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
-          Every AI-generated pitch, ready to send across any channel
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Pitch Engine"
+        title="Pitch Command Center"
+        subtitle="Every AI-generated pitch, ready to send across any channel"
+      />
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
@@ -257,6 +361,7 @@ export default function PitchesPage() {
           { label: 'Total Pitches', value: stats.total, color: '#FAFAFA' },
           { label: 'Sent',          value: stats.sent,  color: '#4ade80' },
           { label: 'Replied',       value: stats.replied, color: '#60a5fa' },
+          { label: 'Approved',      value: stats.approved, color: '#a78bfa' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
@@ -288,7 +393,7 @@ export default function PitchesPage() {
 
         {/* Status filter pills */}
         <div style={{ display: 'flex', gap: 6 }}>
-          {['all', 'draft', 'sent', 'replied'].map(s => (
+          {['all', 'draft', 'sent', 'replied', 'approved'].map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
@@ -307,7 +412,7 @@ export default function PitchesPage() {
         </div>
 
         <button
-          onClick={loadPitches}
+          onClick={() => loadPitches()}
           style={{
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: 8, padding: '9px 12px', color: 'rgba(255,255,255,0.5)',
@@ -346,7 +451,9 @@ export default function PitchesPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: 64, textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>✍️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <PenLine size={40} color='rgba(255,255,255,0.2)' strokeWidth={1.5} />
+            </div>
             <div style={{ fontSize: 16, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
               {pitches.length === 0 ? 'No pitches yet' : 'No pitches match your filter'}
             </div>
@@ -387,12 +494,13 @@ export default function PitchesPage() {
         {selectedPitch && (
           <SendModal
             pitch={selectedPitch}
-            gmailAddress={gmailStatus?.gmailAddress ?? null}
+            emailReady={emailStatus?.connected ?? false}
+            emailFrom={emailStatus?.fromAddress ?? null}
             onClose={() => {
               setSelectedPitch(null)
               loadPitches()
             }}
-            onSuccess={msg => showToast(msg)}
+            onSuccess={msg => toast.success(msg)}
           />
         )}
       </AnimatePresence>

@@ -2,6 +2,8 @@ import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Deal from '@/lib/models/Deal'
+import Notification from '@/lib/models/Notification'
+import { ensureSessionScope } from '@/lib/scope'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -15,6 +17,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
 
   await connectDB()
+  const scope = await ensureSessionScope(session.user.id)
 
   const update: Record<string, unknown> = {}
   const push: Record<string, unknown> = {}
@@ -44,11 +47,28 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (Object.keys(push).length) mongoUpdate.$push = push
 
   const deal = await Deal.findOneAndUpdate(
-    { _id: id, userId: session.user.id },
+    { _id: id, orgId: scope.orgId },
     mongoUpdate,
     { new: true }
   )
   if (!deal) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  // Won/lost are the two transitions worth surfacing in the feed. A failed write
+  // here must never fail the PATCH the user is waiting on.
+  try {
+    if (deal.stage === 'won' || deal.stage === 'lost') {
+      await Notification.create({
+        userId: session.user.id,
+        orgId: scope.orgId,
+        type: deal.stage === 'won' ? 'deal_won' : 'deal_lost',
+        dealId: deal._id,
+        clientId: deal.clientId,
+        message: deal.stage === 'won'
+          ? `Deal won — ${deal.businessName} (${deal.wonValue ?? deal.estimatedValue} ${deal.currency}).`
+          : `${deal.businessName} marked lost.`,
+      })
+    }
+  } catch { /* non-critical */ }
 
   return NextResponse.json({ deal })
 }
@@ -60,6 +80,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   const { id } = await params
   await connectDB()
-  await Deal.findOneAndDelete({ _id: id, userId: session.user.id })
+  const scope = await ensureSessionScope(session.user.id)
+  await Deal.findOneAndDelete({ _id: id, orgId: scope.orgId })
   return NextResponse.json({ success: true })
 }

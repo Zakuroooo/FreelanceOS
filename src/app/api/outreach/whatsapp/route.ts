@@ -2,6 +2,7 @@ import { auth } from '@/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db'
 import Pitch from '@/lib/models/Pitch'
+import { ensureSessionScope } from '@/lib/scope'
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -14,7 +15,8 @@ export async function POST(req: NextRequest) {
   if (!pitchId || !phone) return NextResponse.json({ error: 'pitchId and phone required' }, { status: 400 })
 
   await connectDB()
-  const pitch = await Pitch.findOne({ _id: pitchId, userId: session.user.id })
+  const scope = await ensureSessionScope(session.user.id)
+  const pitch = await Pitch.findOne({ _id: pitchId, orgId: scope.orgId })
   if (!pitch) return NextResponse.json({ error: 'Pitch not found' }, { status: 404 })
 
   // Use the short WhatsApp version if available, otherwise trim the email pitch

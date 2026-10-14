@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import * as cheerio from 'cheerio'
 import dbConnect from '@/lib/db'
-import DiscoverCache from '@/lib/models/DiscoverCache'
+import DiscoverCache, { type IDiscoverCache } from '@/lib/models/DiscoverCache'
+import User from '@/lib/models/User'
+import type { Document } from 'mongoose'
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,6 +22,21 @@ export interface EnrichedClient {
   intelStatus: 'light_scan' | 'prefetching' | 'ready' | 'stale'
   sourceConfidence: 'verified' | 'scraped' | 'inferred' | 'guessed'
   sourceOrigin: string
+}
+
+/**
+ * A `DiscoverCache` row as it comes back from `.lean()`.
+ *
+ * Spelled out rather than reusing `IDiscoverCache` directly for two reasons: that
+ * interface extends `Document`, whose `_id` is non-optional and so cannot be dropped from
+ * a lean result; and rows written before `leadState` was removed from the schema still
+ * carry the field, which the read path has to be able to see in order to discard it.
+ */
+type CachedRow = Omit<IDiscoverCache, keyof Document> & {
+  _id: unknown
+  __v?: number
+  /** Legacy. Per-user state that never belonged on a document shared by every user. */
+  leadState?: string
 }
 
 async function pMap<T, R>(items: T[], fn: (item: T, i: number) => Promise<R>, concurrency = 5): Promise<R[]> {
@@ -415,12 +432,24 @@ async function enrichPlace(raw: any, idx: number, businessType: string, location
     merge(aggData)
   }
 
-  // Layer 6: Email guess
+  // Layer 6: Email guess — but only if the domain can actually receive mail.
+  // Fabricating info@domains with no MX record is how campaigns used to die with
+  // "address does not exist" bounces; a domain that can't accept mail gets NO email.
   if (!email && website) {
     try {
       const domain = new URL(website.startsWith('http') ? website : `https://${website}`).hostname
-      email = `info@${domain}`
-      emailConfidence = 'guessed'
+      if (!domain.startsWith('localhost') && /^\d+\.\d+\.\d+\.\d+$/.test(domain) === false && domain.includes('.')) {
+        const { resolveMx } = await import('dns/promises')
+        try {
+          const mx = await resolveMx(domain)
+          if (mx.length > 0) {
+            email = `info@${domain}`
+            emailConfidence = 'guessed'
+          }
+        } catch {
+          // No DNS/MX — leave email empty; the no-email gap stays honest.
+        }
+      }
     } catch { /* ignore */ }
   }
 
@@ -535,16 +564,24 @@ async function fetchViaGooglePlaces(query: string, key: string, offset: number =
 /* ── ROUTE HANDLER ─────────────────────────────────────── */
 export async function POST(req: Request) {
   const session = await auth()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { businessType, location, query: rawQuery, plan = 'free', seenIds = [], actedIds = [], offset = 0 } = body
+  const { businessType, location, query: rawQuery, seenIds = [], actedIds = [], offset = 0 } = body
   const query = rawQuery || (businessType ? `${businessType} in ${location || 'worldwide'}` : '')
   if (!query) return NextResponse.json({ error: 'query or businessType is required' }, { status: 400 })
 
+  await dbConnect()
+
+  // The plan used to be read off the request body, so any free user could POST
+  // `{ plan: 'agency' }` and get 40 paid-API results instead of 15. It is billing
+  // state and only the database knows it.
+  const planDoc = await User.findById(session.user.id).select('plan').lean<{ plan?: string } | null>()
+  const plan = planDoc?.plan ?? 'free'
+
   // Plan-based result limits
   const PLAN_LIMITS: Record<string, number> = { free: 15, pro: 30, agency: 40 }
-  const maxResults = PLAN_LIMITS[plan] || 15
+  const maxResults = PLAN_LIMITS[plan] ?? 15
 
   const APIFY  = process.env.APIFY_API_TOKEN    || ''
   const SERP   = process.env.SERPAPI_KEY         || ''
@@ -597,36 +634,45 @@ export async function POST(req: Request) {
     selectedRaw,
     async (raw, i) => {
       const placeId = getRawId(raw, i)
-      const cached = await DiscoverCache.findOne({ placeId }).lean()
-      
+      const cached = await DiscoverCache.findOne({ placeId }).lean<CachedRow | null>()
+
       if (cached) {
         cacheHits++
-        const cachedObj = { ...cached, id: cached.placeId }
-        delete cachedObj._id
-        delete cachedObj.__v
-        cachedObj.leadState ??= 'new'
-        cachedObj.intelStatus ??= 'light_scan'
-        cachedObj.sourceConfidence ??= 'scraped'
-        cachedObj.sourceOrigin ??= cachedObj.source || 'scraped'
-        return cachedObj as EnrichedClient
+        // Destructured rather than deleted. `_id` and `__v` are Mongoose bookkeeping the
+        // client has no use for, and `leadState` is a field documents written before it
+        // left the schema still carry — the cache is shared across all users, so it can
+        // never be the source of truth for lead state. Always hand back 'new'; the client
+        // merges its own saved / pitched / ignored state over the top.
+        const { _id, __v, leadState, ...shared } = cached
+        return {
+          ...shared,
+          id: cached.placeId,
+          leadState: 'new',
+          intelStatus:      shared.intelStatus      ?? 'light_scan',
+          sourceConfidence: shared.sourceConfidence ?? 'scraped',
+          sourceOrigin:     shared.sourceOrigin     || shared.source || 'scraped',
+        } as EnrichedClient
       }
 
       apiCalls++
       const enriched = await enrichPlace(raw, i, businessType || 'Business', location || '')
-      
+
       try {
+        // `leadState` is stripped before writing — see the comment in the model. Every
+        // other field here is a property of the business itself and is safe to share.
+        const { leadState: _leadState, ...shared } = enriched
         await DiscoverCache.updateOne(
           { placeId: enriched.id },
           {
             $set: {
-              ...enriched,
+              ...shared,
               placeId: enriched.id,
-              leadState: enriched.leadState ?? 'new',
               intelStatus: enriched.intelStatus ?? 'light_scan',
               sourceConfidence: enriched.sourceConfidence ?? 'scraped',
               sourceOrigin: enriched.sourceOrigin ?? enriched.source ?? 'scraped',
               updatedAt: new Date(),
             },
+            $unset: { leadState: '' },
           },
           { upsert: true }
         )

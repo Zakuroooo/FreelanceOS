@@ -128,9 +128,11 @@ function Typewriter({
     let cancelled = false
 
     if (!active) {
-      setDisplayed('')
-      setIsDone(false)
-      return
+      const reset = setTimeout(() => {
+        setDisplayed('')
+        setIsDone(false)
+      }, 0)
+      return () => { cancelled = true; clearTimeout(reset) }
     }
 
     ;(async () => {
@@ -196,7 +198,9 @@ function DiscoverMockup({ active }: { active: boolean }) {
   const [showResults, setShowResults] = useState(false)
 
   useEffect(() => {
-    if (!active) setShowResults(false)
+    if (active) return
+    const t = setTimeout(() => setShowResults(false), 0)
+    return () => clearTimeout(t)
   }, [active])
 
   return (
@@ -362,7 +366,9 @@ function OutreachMockup({ active }: { active: boolean }) {
   const [showBars, setShowBars] = useState(false)
 
   useEffect(() => {
-    if (!active) setShowBars(false)
+    if (active) return
+    const t = setTimeout(() => setShowBars(false), 0)
+    return () => clearTimeout(t)
   }, [active])
 
   return (
@@ -443,7 +449,9 @@ function PipelineMockup({ active }: { active: boolean }) {
   const [showCards, setShowCards] = useState(false)
 
   useEffect(() => {
-    if (!active) setShowCards(false)
+    if (active) return
+    const t = setTimeout(() => setShowCards(false), 0)
+    return () => clearTimeout(t)
   }, [active])
 
   return (
@@ -527,7 +535,9 @@ function PaidMockup({ active }: { active: boolean }) {
   const [showBal, setShowBal] = useState(false)
 
   useEffect(() => {
-    if (!active) setShowBal(false)
+    if (active) return
+    const t = setTimeout(() => setShowBal(false), 0)
+    return () => clearTimeout(t)
   }, [active])
 
   return (

@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard, Search, Users, FileText,
-  Send, Handshake, Bell, Settings, LogOut, Zap,
-} from 'lucide-react'
+  Send, Handshake, Bell, Settings, LogOut, Zap, UsersRound } from 'lucide-react'
 import { motion, useSpring, useMotionValue, useTransform, AnimatePresence } from 'framer-motion'
 import { useRef, useState } from 'react'
 
@@ -18,6 +17,7 @@ const navItems = [
   { label: 'Outreach',   href: '/outreach',      icon: Send },
   { label: 'Deals',      href: '/deals',         icon: Handshake },
   { label: 'Alerts',     href: '/notifications', icon: Bell },
+  { label: 'Team',       href: '/team',          icon: UsersRound },
   { label: 'Settings',   href: '/settings',      icon: Settings },
 ]
 
@@ -267,11 +267,10 @@ export default function Sidebar() {
           {/* Logout */}
           <motion.button
             whileHover={{ backgroundColor: 'rgba(196,20,37,0.06)' }}
-            onClick={() => signOut({ callbackUrl: '/login' })}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '10px 14px', borderRadius: 8,
-              background: 'none', border: 'none', cursor: 'pointer', width: '100%',
+              background: 'rgba(196,20,37,0)', border: 'none', cursor: 'pointer', width: '100%',
               color: 'rgba(255,255,255,0.3)',
             }}
           >

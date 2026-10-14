@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, ChevronRight, Mail, MessageCircle, Link2, Camera, TrendingUp, DollarSign, Target, Trophy, StickyNote, Calendar, AlertCircle } from 'lucide-react'
-
-const LinkedinIcon = Link2
-const InstagramIcon = Camera
-
+import { X, Mail, MessageCircle, Link2, Camera, TrendingUp, DollarSign, Target, Trophy, StickyNote, AlertCircle, RefreshCw, AlarmClock, Download, Send, Calendar, FileText, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { daysSince, formatCurrency } from '@/lib/format'
+import { downloadCsv, todayStamp } from '@/lib/csv'
+import { PageHeader, GhostButton } from '@/components/ui/kit'
 
 interface Deal {
   _id: string
@@ -27,13 +27,29 @@ interface Deal {
 
 type Stage = Deal['stage']
 
-const STAGES: Array<{ key: Stage; label: string; color: string; emoji: string }> = [
-  { key: 'pitched',   label: 'Pitched',    color: '#60a5fa', emoji: '📨' },
-  { key: 'responded', label: 'Responded',  color: '#a78bfa', emoji: '💬' },
-  { key: 'meeting',   label: 'Meeting',    color: '#f59e0b', emoji: '📅' },
-  { key: 'proposal',  label: 'Proposal',   color: '#fb923c', emoji: '📋' },
-  { key: 'won',       label: 'Won 🎉',     color: '#4ade80', emoji: '🏆' },
-  { key: 'lost',      label: 'Lost',       color: '#6b7280', emoji: '💀' },
+/**
+ * Follow-up triage for a card. Returns null when there is nothing to nudge about:
+ * closed deals, no date set, or a date more than 3 days out. Overdue = amber,
+ * upcoming (≤3 days) = blue.
+ */
+function followUpState(deal: Deal): { text: string; action?: string; overdue: boolean } | null {
+  if (deal.stage === 'won' || deal.stage === 'lost') return null
+  if (!deal.nextActionDate) return null
+  const due = new Date(deal.nextActionDate).getTime()
+  if (!Number.isFinite(due)) return null
+  const diffDays = Math.floor((Date.now() - due) / 86400000)
+  if (diffDays < -3) return null
+  const label = diffDays >= 1 ? `${diffDays}d overdue` : diffDays === 0 || diffDays < 0 ? 'Today' : `${-diffDays}d`
+  return { text: label, action: deal.nextAction?.slice(0, 40), overdue: diffDays >= 0 }
+}
+
+const STAGES: Array<{ key: Stage; label: string; color: string; Icon: typeof Send }> = [
+  { key: 'pitched',   label: 'Pitched',    color: '#60a5fa', Icon: Send          },
+  { key: 'responded', label: 'Responded',  color: '#a78bfa', Icon: MessageCircle },
+  { key: 'meeting',   label: 'Meeting',    color: '#f59e0b', Icon: Calendar      },
+  { key: 'proposal',  label: 'Proposal',   color: '#fb923c', Icon: FileText      },
+  { key: 'won',       label: 'Won',        color: '#4ade80', Icon: Trophy        },
+  { key: 'lost',      label: 'Lost',       color: '#6b7280', Icon: XCircle       },
 ]
 
 const CHANNEL_ICONS: Record<string, React.ReactNode> = {
@@ -43,47 +59,68 @@ const CHANNEL_ICONS: Record<string, React.ReactNode> = {
   instagram: <Camera size={10} />,
 }
 
-function formatCurrency(val: number, currency = 'INR') {
-  if (currency === 'INR') return `₹${val.toLocaleString('en-IN')}`
-  return `$${val.toLocaleString()}`
-}
-
-function daysSince(dateStr?: string) {
-  if (!dateStr) return null
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const days = Math.floor(diff / 86400000)
-  return days === 0 ? 'Today' : `${days}d ago`
-}
-
 export default function DealsPage() {
-  const [deals, setDeals]           = useState<Deal[]>([])
   const [grouped, setGrouped]       = useState<Record<Stage, Deal[]>>({} as Record<Stage, Deal[]>)
   const [stats, setStats]           = useState({ total: 0, pipeline: 0, wonRevenue: 0 })
   const [loading, setLoading]       = useState(true)
+  const [loadError, setLoadError]   = useState('')
   const [detailDeal, setDetailDeal] = useState<Deal | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [noteInput, setNoteInput]   = useState('')
   const [noteLoading, setNoteLoading] = useState(false)
   const [valueInput, setValueInput] = useState('')
+  const [actionInput, setActionInput]     = useState('')
+  const [actionDateInput, setactionDateInput] = useState('')
+  // When a deal is marked won we ask for what it actually closed at — revenue
+  // stats prefer `wonValue`, but nothing ever collected it.
+  const [wonPrompt, setWonPrompt]   = useState<{ dealId: string; name: string } | null>(null)
+  const [wonValueInput, setWonValueInput] = useState('')
 
+  // Event-handler reload (Retry button). The mount effect below mirrors this logic
+  // as a promise chain, since synchronous setState inside an effect body causes
+  // cascading renders.
   const load = async () => {
     setLoading(true)
+    setLoadError('')
     try {
       const res  = await fetch('/api/deals')
+      if (!res.ok) throw new Error(`Failed to load deals (${res.status})`)
       const data = await res.json()
-      setDeals(data.deals ?? [])
       setGrouped(data.grouped ?? {})
       setStats(data.stats ?? { total: 0, pipeline: 0, wonRevenue: 0 })
+    } catch (err) {
+      // An empty board used to be indistinguishable from a failed fetch
+      setLoadError(err instanceof Error ? err.message : 'Failed to load deals')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    let active = true
+    fetch('/api/deals')
+      .then(res => {
+        if (!res.ok) throw new Error(`Failed to load deals (${res.status})`)
+        return res.json()
+      })
+      .then(data => {
+        if (!active) return
+        setGrouped(data.grouped ?? {})
+        setStats(data.stats ?? { total: 0, pipeline: 0, wonRevenue: 0 })
+      })
+      .catch((err: unknown) => {
+        if (active) setLoadError(err instanceof Error ? err.message : 'Failed to load deals')
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [])
 
   const moveStage = async (dealId: string, newStage: Stage) => {
-    // Optimistic update
+    // Snapshot the previous grouping so a failed PATCH can roll the card back —
+    // it used to sit in the new stage until a full reload while the DB kept the old one.
+    let previous: Record<Stage, Deal[]> | null = null
     setGrouped(prev => {
+      previous = prev
       const allDeals = Object.values(prev).flat()
       const deal = allDeals.find(d => d._id === dealId)
       if (!deal) return prev
@@ -97,51 +134,162 @@ export default function DealsPage() {
       return next
     })
 
-    await fetch(`/api/deals/${dealId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stage: newStage }),
-    })
-
-    if (detailDeal?._id === dealId) setDetailDeal(d => d ? { ...d, stage: newStage } : null)
+    try {
+      const res = await fetch(`/api/deals/${dealId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: newStage }),
+      })
+      if (!res.ok) throw new Error(`Move failed (${res.status})`)
+      if (detailDeal?._id === dealId) setDetailDeal(d => d ? { ...d, stage: newStage } : null)
+    } catch (err) {
+      if (previous) setGrouped(previous)
+      toast.error(err instanceof Error ? err.message : 'Failed to move deal')
+    }
   }
 
   const addNote = async () => {
     if (!detailDeal || !noteInput.trim()) return
     setNoteLoading(true)
-    const res  = await fetch(`/api/deals/${detailDeal._id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ note: noteInput.trim() }),
-    })
-    const data = await res.json()
-    setDetailDeal(data.deal)
-    setNoteInput('')
-    setNoteLoading(false)
-    load()
+    try {
+      const res  = await fetch(`/api/deals/${detailDeal._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: noteInput.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.deal) throw new Error(data.error || `Failed to add note (${res.status})`)
+      // Setting the raw response used to crash when an error body had no `deal`
+      setDetailDeal(data.deal)
+      setNoteInput('')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to add note')
+    } finally {
+      setNoteLoading(false)
+    }
   }
 
   const updateValue = async (dealId: string, value: number) => {
-    await fetch(`/api/deals/${dealId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estimatedValue: value }),
-    })
-    load()
+    try {
+      const res = await fetch(`/api/deals/${dealId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estimatedValue: value }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.deal) throw new Error(data.error || `Failed to update value (${res.status})`)
+      // Keep the open panel in sync — it used to show the stale value until reopened
+      setDetailDeal((d: Deal | null) => (d && d._id === dealId ? data.deal : d))
+      setValueInput('')
+      load()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update value')
+    }
+  }
+
+  // Saves the follow-up reminder. An empty date with an action keeps just the text;
+  // both empty is blocked by the button's disabled state.
+  const saveNextAction = async (dealId: string, action?: string, date?: string) => {
+    try {
+      const res = await fetch(`/api/deals/${dealId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nextAction: action,
+          ...(date ? { nextActionDate: new Date(`${date}T12:00:00`).toISOString() } : {}),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.deal) throw new Error(data.error || `Failed to save reminder (${res.status})`)
+      setDetailDeal((d: Deal | null) => (d && d._id === dealId ? data.deal : d))
+      setActionInput('')
+      setactionDateInput('')
+      toast.success(action && date ? 'Reminder saved' : date ? 'Reminder date saved' : 'Action saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save reminder')
+    }
+  }
+
+  // Stage change entry point — intercepting `won` lets us capture the real closed value.
+  const changeStage = (dealId: string, newStage: Stage) => {
+    const deal = detailDeal?._id === dealId
+      ? detailDeal
+      : Object.values(grouped).flat().find(d => d._id === dealId)
+    if (newStage === 'won') {
+      setWonPrompt({ dealId, name: deal?.businessName ?? 'this deal' })
+      return
+    }
+    moveStage(dealId, newStage)
+  }
+
+  const confirmWon = async () => {
+    if (!wonPrompt) return
+    const value = Number(wonValueInput)
+    setWonPrompt(null)
+    setWonValueInput('')
+    if (!wonValueInput || !Number.isFinite(value)) {
+      await moveStage(wonPrompt.dealId, 'won')
+      return
+    }
+    // Optimistic move + wonValue in one PATCH; rollback lives in moveStage's catch,
+    // so here we only handle the combined call's failure.
+    try {
+      const res = await fetch(`/api/deals/${wonPrompt.dealId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: 'won', wonValue: value }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.deal) throw new Error(data.error || `Failed to close deal (${res.status})`)
+      setGrouped(prev => {
+        const next: Record<Stage, Deal[]> = {} as Record<Stage, Deal[]>
+        STAGES.forEach(s => { next[s.key] = (prev[s.key] ?? []).filter(d => d._id !== wonPrompt.dealId) })
+        next.won = [...(next.won ?? []), data.deal]
+        return next
+      })
+      setDetailDeal((d: Deal | null) => (d && d._id === wonPrompt.dealId ? data.deal : d))
+      toast.success(`Won at ${formatCurrency(value)} — added to revenue`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to close deal')
+      load()
+    }
   }
 
   const wonDeals   = grouped['won']?.length ?? 0
   const totalDeals = stats.total
 
+  const allDealRows = Object.values(grouped).flat()
+
+  const exportCsv = () => {
+    if (allDealRows.length === 0) return
+    downloadCsv(
+      `freelanceos-pipeline-${todayStamp()}.csv`,
+      ['Business', 'Location', 'Stage', 'Estimated Value', 'Won Value', 'Currency', 'Channel', 'Next Action', 'Next Action Date', 'Notes', 'Pitched At', 'Created'],
+      allDealRows.map(d => [
+        d.businessName, d.businessLocation ?? '', d.stage,
+        d.estimatedValue, d.wonValue ?? '', d.currency,
+        d.channel ?? '', d.nextAction ?? '',
+        d.nextActionDate ? new Date(d.nextActionDate).toISOString().slice(0, 10) : '',
+        (d.notes ?? []).map(n => n.text).join(' | '),
+        d.pitchedAt ? new Date(d.pitchedAt).toISOString().slice(0, 10) : '',
+        new Date(d.createdAt).toISOString().slice(0, 10),
+      ])
+    )
+    toast.success(`Exported ${allDealRows.length} deals`)
+  }
+
   return (
     <div style={{ minHeight: '100vh', color: '#FAFAFA' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.04em', margin: 0 }}>Deal Pipeline</h1>
-        <p style={{ margin: '6px 0 0', fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
-          Track every pitched lead from first contact to closed deal
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Pipeline"
+        title="Deal Pipeline"
+        subtitle="Track every pitched lead from first contact to closed deal"
+        actions={allDealRows.length > 0 ? (
+          <GhostButton onClick={exportCsv} title="Download the full pipeline as CSV">
+            <Download size={13} /> Export CSV
+          </GhostButton>
+        ) : undefined}
+      />
 
       {/* Revenue stats */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 28, flexWrap: 'wrap' }}>
@@ -164,12 +312,49 @@ export default function DealsPage() {
         ))}
       </div>
 
+      {/* Load error — an empty board used to be indistinguishable from a failed fetch */}
+      {loadError && (
+        <div style={{
+          marginBottom: 24, padding: '14px 20px', borderRadius: 12,
+          background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <AlertCircle size={16} color='#ef4444' />
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{loadError}</span>
+          </div>
+          <button
+            onClick={() => load()}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+              background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)',
+              color: '#ef4444', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+            }}
+          >
+            <RefreshCw size={12} /> Retry
+          </button>
+        </div>
+      )}
+
+      {/* Loading strip */}
+      {!loadError && loading && (
+        <div style={{
+          marginBottom: 24, padding: '12px 20px', borderRadius: 12,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+          display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'rgba(255,255,255,0.45)',
+        }}>
+          <RefreshCw size={13} style={{ animation: 'deal-spin 1s linear infinite' }} />
+          Loading pipeline…
+        </div>
+      )}
+
       {/* Kanban */}
       <div style={{
         display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 16,
         WebkitOverflowScrolling: 'touch',
       }}>
-        {STAGES.map(({ key: stage, label, color, emoji }) => {
+        {STAGES.map(({ key: stage, label, color, Icon: StageIcon }) => {
           const col = grouped[stage] ?? []
           return (
             <div
@@ -184,7 +369,7 @@ export default function DealsPage() {
               onDrop={e => {
                 e.preventDefault()
                 const id = (e as React.DragEvent).dataTransfer.getData('dealId')
-                if (id) moveStage(id, stage)
+                if (id) changeStage(id, stage)
                 setDraggingId(null)
               }}
             >
@@ -195,7 +380,7 @@ export default function DealsPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 14 }}>{emoji}</span>
+                  <StageIcon size={14} color={color} strokeWidth={2.2} />
                   <span style={{ fontSize: 13, fontWeight: 700, color }}>{label}</span>
                 </div>
                 <div style={{
@@ -223,14 +408,20 @@ export default function DealsPage() {
                       style={{ cursor: 'grab' }}
                     >
                       <motion.div
+                        className="deal-card"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
+                        whileHover={{ scale: 1.01 }}
                         style={{
-                          background: draggingId === deal._id ? 'rgba(196,20,37,0.1)' : 'rgba(255,255,255,0.04)',
+                          background: draggingId === deal._id
+                            ? 'rgba(196,20,37,0.1)'
+                            : 'linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.03))',
                           border: `1px solid ${draggingId === deal._id ? 'rgba(196,20,37,0.3)' : 'rgba(255,255,255,0.07)'}`,
-                          borderRadius: 10, padding: '12px',
-                          transition: 'border 0.15s, background 0.15s',
+                          borderRadius: 12, padding: '13px',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.25)',
+                          cursor: 'grab',
+                          transition: 'border 0.15s, background 0.15s, box-shadow 0.15s',
                         }}
                       >
                       {/* Business name */}
@@ -272,6 +463,25 @@ export default function DealsPage() {
                           <StickyNote size={9} /> {deal.notes.length} note{deal.notes.length > 1 ? 's' : ''}
                         </div>
                       )}
+
+                      {/* Follow-up badge — the whole point of a pipeline is knowing who to nudge */}
+                      {followUpState(deal) !== null && (() => {
+                        const fu = followUpState(deal)!
+                        return (
+                          <div style={{
+                            marginTop: 8, display: 'flex', alignItems: 'center', gap: 4,
+                            padding: '3px 7px', borderRadius: 5, width: 'fit-content',
+                            fontSize: 10, fontWeight: 700,
+                            color: fu.overdue ? '#f59e0b' : '#60a5fa',
+                            background: fu.overdue ? 'rgba(245,158,11,0.1)' : 'rgba(96,165,250,0.1)',
+                            border: `1px solid ${fu.overdue ? 'rgba(245,158,11,0.3)' : 'rgba(96,165,250,0.25)'}`,
+                          }}>
+                            <AlarmClock size={9} />
+                            {fu.overdue ? 'Follow up' : 'Next'} · {fu.text}
+                            {fu.action && <span style={{ fontWeight: 500, opacity: 0.75 }}>· {fu.action}</span>}
+                          </div>
+                        )
+                      })()}
                       </motion.div>
                     </div>
                   ))}
@@ -335,7 +545,7 @@ export default function DealsPage() {
                     {STAGES.map(({ key, label, color }) => (
                       <button
                         key={key}
-                        onClick={() => moveStage(detailDeal._id, key)}
+                        onClick={() => changeStage(detailDeal._id, key)}
                         style={{
                           padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 11, fontWeight: 700,
                           background: detailDeal.stage === key ? `${color}20` : 'rgba(255,255,255,0.04)',
@@ -373,6 +583,64 @@ export default function DealsPage() {
                       }}
                     >
                       Save
+                    </button>
+                  </div>
+                </div>
+
+                {/* Next action — the follow-up engine. Fields existed on the model
+                    and PATCH long before any UI could set them. */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Next Action</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input
+                      defaultValue={detailDeal.nextAction}
+                      onChange={e => setActionInput(e.target.value)}
+                      placeholder='e.g. Call to confirm proposal'
+                      type='text'
+                      style={{
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 8, padding: '9px 12px', color: '#FAFAFA', fontSize: 13,
+                        outline: 'none',
+                      }}
+                    />
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <AlarmClock size={13} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+                      <input
+                        type='date'
+                        defaultValue={detailDeal.nextActionDate ? new Date(detailDeal.nextActionDate).toISOString().slice(0, 10) : ''}
+                        onChange={e => setactionDateInput(e.target.value)}
+                        style={{
+                          flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: 8, padding: '9px 12px', colorScheme: 'dark', color: '#FAFAFA', fontSize: 12,
+                          outline: 'none',
+                        }}
+                      />
+                      {detailDeal.nextActionDate && (
+                        <button
+                          onClick={() => saveNextAction(detailDeal._id, undefined, '')}
+                          title='Clear reminder'
+                          style={{
+                            padding: '9px 10px', borderRadius: 8, cursor: 'pointer', fontSize: 11,
+                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                            color: 'rgba(255,255,255,0.4)',
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => saveNextAction(detailDeal._id, actionInput.trim() || undefined, actionDateInput)}
+                      disabled={!actionInput.trim() && !actionDateInput}
+                      style={{
+                        alignSelf: 'flex-end', padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+                        fontSize: 12, fontWeight: 700,
+                        background: (actionInput.trim() || actionDateInput) ? 'rgba(96,165,250,0.15)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${(actionInput.trim() || actionDateInput) ? 'rgba(96,165,250,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                        color: (actionInput.trim() || actionDateInput) ? '#60a5fa' : 'rgba(255,255,255,0.3)',
+                      }}
+                    >
+                      Save reminder
                     </button>
                   </div>
                 </div>
@@ -445,16 +713,16 @@ export default function DealsPage() {
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Quick Actions</div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button
-                      onClick={() => { moveStage(detailDeal._id, 'won'); setDetailDeal(d => d ? { ...d, stage: 'won' } : null) }}
+                      onClick={() => changeStage(detailDeal._id, 'won')}
                       style={{
                         flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
                         background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.3)', color: '#4ade80',
                       }}
                     >
-                      🎉 Mark Won
+                      <Trophy size={12} style={{ display: 'inline' }} /> Mark Won
                     </button>
                     <button
-                      onClick={() => { moveStage(detailDeal._id, 'lost'); setDetailDeal(d => d ? { ...d, stage: 'lost' } : null) }}
+                      onClick={() => changeStage(detailDeal._id, 'lost')}
                       style={{
                         flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700,
                         background: 'rgba(107,114,128,0.15)', border: '1px solid rgba(107,114,128,0.3)', color: '#9ca3af',
@@ -470,7 +738,80 @@ export default function DealsPage() {
         )}
       </AnimatePresence>
 
+      {/* Won-value prompt — captures what the deal actually closed at */}
+      <AnimatePresence>
+        {wonPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+              backdropFilter: 'blur(8px)', zIndex: 1100,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+            onClick={() => setWonPrompt(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'rgba(10,10,16,0.98)', border: '1px solid rgba(74,222,128,0.3)',
+                borderRadius: 16, padding: 28, width: 380,
+                boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+              }}
+            >
+              <div style={{ marginBottom: 12 }}>
+                <Trophy size={24} color='#4ade80' />
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#FAFAFA', marginBottom: 8 }}>
+                Close {wonPrompt.name} as won
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 16 }}>
+                What did it actually close at? This is what your revenue stats will count.
+              </div>
+              <input
+                autoFocus
+                value={wonValueInput}
+                onChange={e => setWonValueInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') confirmWon() }}
+                placeholder='0'
+                type='number'
+                style={{
+                  width: '100%', background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(74,222,128,0.25)', borderRadius: 8,
+                  padding: '11px 12px', color: '#FAFAFA', fontSize: 18, fontWeight: 700,
+                  outline: 'none', boxSizing: 'border-box', marginBottom: 20,
+                }}
+              />
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  onClick={() => setWonPrompt(null)}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'rgba(255,255,255,0.7)', fontWeight: 600, fontSize: 13,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmWon}
+                  style={{
+                    flex: 1, padding: '10px', borderRadius: 8, cursor: 'pointer',
+                    background: 'rgba(74,222,128,0.15)', border: '1px solid rgba(74,222,128,0.35)',
+                    color: '#4ade80', fontWeight: 700, fontSize: 13,
+                  }}
+                >
+                  Mark Won
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <style>{`
+        .deal-card:hover { border-color: rgba(255,255,255,0.16) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.4) !important; }
+        @keyframes deal-spin { to { transform: rotate(360deg) } }
         ::-webkit-scrollbar { width:4px; height:4px }
         ::-webkit-scrollbar-track { background:transparent }
         ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px }

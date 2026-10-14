@@ -57,10 +57,12 @@ function Kbd({ s }: { s: string }) {
 function Typewriter({ active, text, speed = 65 }: { active: boolean; text: string; speed?: number }) {
   const [shown, setShown] = useState('')
   useEffect(() => {
-    if (!active) { setShown(''); return }
+    // Reset deferred to a task; typing happens in interval callbacks
+    const reset = setTimeout(() => setShown(''), 0)
+    if (!active) return () => clearTimeout(reset)
     let i = 0
     const id = setInterval(() => { i++; setShown(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, speed)
-    return () => clearInterval(id)
+    return () => { clearTimeout(reset); clearInterval(id) }
   }, [active, text, speed])
   return (
     <>
@@ -77,9 +79,9 @@ function Cursor({ x, y, clicking }: { x: number; y: number; clicking: boolean })
   const [ripple, setRipple] = useState(false)
   useEffect(() => {
     if (!clicking) return
-    setRipple(true)
+    const start = setTimeout(() => setRipple(true), 0)
     const t = setTimeout(() => setRipple(false), 440)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(start); clearTimeout(t) }
   }, [clicking])
 
   return (

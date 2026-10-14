@@ -2,6 +2,7 @@ import mongoose, { Schema, models, model, type Document } from 'mongoose'
 
 export interface IDeal extends Document {
   userId: mongoose.Types.ObjectId
+  orgId: mongoose.Types.ObjectId
   clientId?: mongoose.Types.ObjectId
   pitchId?: mongoose.Types.ObjectId
   businessName: string
@@ -31,6 +32,7 @@ export interface IDeal extends Document {
 
 const DealSchema = new Schema<IDeal>({
   userId:           { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  orgId:            { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
   clientId:         { type: Schema.Types.ObjectId, ref: 'Client' },
   pitchId:          { type: Schema.Types.ObjectId, ref: 'Pitch' },
   businessName:     { type: String, required: true },
@@ -62,7 +64,8 @@ const DealSchema = new Schema<IDeal>({
 }, { timestamps: true })
 
 DealSchema.index({ userId: 1, stage: 1 })
+DealSchema.index({ orgId: 1, stage: 1 })
 DealSchema.index({ userId: 1, createdAt: -1 })
 
-const Deal = models.Deal || model<IDeal>('Deal', DealSchema)
+const Deal: mongoose.Model<IDeal> = models.Deal || model<IDeal>('Deal', DealSchema)
 export default Deal

@@ -69,7 +69,7 @@ function extractHandle(raw: string|undefined, platform: 'instagram'|'facebook'|'
     }
     if (platform === 'linkedin') {
       const inIdx = parts.indexOf('in'), coIdx = parts.indexOf('company')
-      let h = inIdx>=0 ? parts[inIdx+1] : coIdx>=0 ? parts[coIdx+1] : parts[parts.length-1] || ''
+      const h = inIdx>=0 ? parts[inIdx+1] : coIdx>=0 ? parts[coIdx+1] : parts[parts.length-1] || ''
       return cleanHandleText(h)
     }
   } catch {
@@ -134,7 +134,12 @@ interface Props {
   onToggle: () => void; onIntel: () => void; onSave: () => void; onIgnore: () => void
   onPitch: () => void; onSimilar: () => void; onToggleSelect: () => void
   onHover: (client: Client) => void; onSeen: (client: Client) => void
-  pitch?: { loading: boolean; content: string | null; error: string | null }
+  pitch?: {
+    loading: boolean
+    content: string | null
+    error: string | null
+    agent?: { grounded?: boolean; audited?: boolean; memoryHits?: number }
+  }
 }
 
 export function DiscoverRow({ client, localLeadState, index, expanded, focused, selected, onToggle, onIntel, onSave, onIgnore, onPitch, onSimilar, onToggleSelect, onHover, onSeen, pitch }: Props) {
@@ -232,7 +237,9 @@ export function DiscoverRow({ client, localLeadState, index, expanded, focused, 
 
               {/* Good fit — no box, just colored text */}
               {isGoodFit && (
-                <span style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(16,185,129,0.75)', letterSpacing: '0.06em', flexShrink: 0 }}>✓ FIT</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'rgba(16,185,129,0.75)', letterSpacing: '0.06em', flexShrink: 0 }}>
+                  <Check size={9} strokeWidth={3} /> FIT
+                </span>
               )}
 
               {/* Source confidence — dot + text, no border */}

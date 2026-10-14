@@ -2,6 +2,7 @@ import mongoose, { Schema, models, model, type Document } from 'mongoose'
 
 export interface IClient extends Document {
   userId: mongoose.Types.ObjectId
+  orgId: mongoose.Types.ObjectId
   businessName: string
   industry?: string
   location?: string
@@ -9,6 +10,8 @@ export interface IClient extends Document {
   websiteLive?: boolean
   metaDescription?: string
   email?: string
+  /** 'confirmed' = scraped from their site/profiles; 'guessed' = pattern-built (info@domain, MX-verified only). */
+  emailConfidence?: 'confirmed' | 'guessed' | 'none'
   phone?: string
   socials?: {
     linkedin?: string
@@ -32,6 +35,7 @@ export interface IClient extends Document {
 
 const ClientSchema = new Schema<IClient>({
   userId:       { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  orgId:        { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
   businessName: { type: String, required: true },
   industry:     { type: String },
   location:     { type: String },
@@ -39,6 +43,7 @@ const ClientSchema = new Schema<IClient>({
   websiteLive:  { type: Boolean },
   metaDescription: { type: String },
   email:        { type: String },
+  emailConfidence: { type: String, enum: ['confirmed', 'guessed', 'none'] },
   phone:        { type: String },
   socials: {
     linkedin:   { type: String },
@@ -68,7 +73,14 @@ const ClientSchema = new Schema<IClient>({
   createdAt:    { type: Date, default: Date.now },
 })
 
-ClientSchema.index({ userId: 1 })
+// `{ userId: 1 }` alone cannot serve the sort in app/api/clients, which lists by userId
+// and orders by `createdAt: -1`. Mongo would fetch the whole per-user set and sort it in
+// memory. The compound index covers the single-key lookups too, so it replaces rather
+// than supplements the old one.
+ClientSchema.index({ userId: 1, createdAt: -1 })
+ClientSchema.index({ orgId: 1, createdAt: -1 })
 
-const Client = models.Client || model<IClient>('Client', ClientSchema)
+// Annotated for the same reason as User: `models.Client` is `Model<any>`, and without a
+// type here `.lean()` results lose their fields.
+const Client: mongoose.Model<IClient> = models.Client || model<IClient>('Client', ClientSchema)
 export default Client

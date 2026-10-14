@@ -7,8 +7,23 @@ import { toast } from 'sonner'
 import { type Client } from './DiscoverRow'
 import { ScoreRing } from './ScoreRing'
 
+interface IntelData {
+  pitchAngle?: string
+  icebreaker?: string
+  whyThisLead?: string
+  requirements?: string[]
+  readiness?: {
+    label?: string
+    reason?: string
+    complexity?: string
+    estimatedWork?: string
+    service?: string
+  }
+  [key: string]: unknown
+}
+
 // Session-level intel cache — survives drawer open/close cycles
-const intelCache = new Map<string, any>()
+const intelCache = new Map<string, IntelData>()
 
 interface IntelDrawerProps {
   client: Client | null
@@ -20,27 +35,31 @@ interface IntelDrawerProps {
 }
 
 export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimilar }: IntelDrawerProps) {
-  const [intel, setIntel] = useState<any>(null)
+  const [intel, setIntel] = useState<IntelData | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!client) {
-      setIntel(null)
-      return
+      const clear = setTimeout(() => setIntel(null), 0)
+      return () => clearTimeout(clear)
     }
 
     const cacheKey = client.id || client.businessName
 
     // Check cache first — instant load, zero tokens
     if (intelCache.has(cacheKey)) {
-      setIntel(intelCache.get(cacheKey))
-      setLoading(false)
-      return
+      const hit = setTimeout(() => {
+        setIntel(intelCache.get(cacheKey) ?? null)
+        setLoading(false)
+      }, 0)
+      return () => clearTimeout(hit)
     }
 
     let isMounted = true
-    setLoading(true)
-    setIntel(null)
+    const start = setTimeout(() => {
+      setLoading(true)
+      setIntel(null)
+    }, 0)
 
     fetch('/api/intel', {
       method: 'POST',
@@ -66,7 +85,7 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
         }
       })
 
-    return () => { isMounted = false }
+    return () => { isMounted = false; clearTimeout(start) }
   }, [client])
 
   // Framer motion variants
@@ -285,11 +304,11 @@ export function IntelDrawer({ client, onClose, onSave, onIgnore, onPitch, onSimi
                     <h3 style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 16px 0' }}>Pitch Strategy</h3>
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(229,72,77,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>The Angle</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontStyle: 'italic', lineHeight: 1.5 }}>"{intel.pitchAngle}"</div>
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontStyle: 'italic', lineHeight: 1.5 }}>“{intel.pitchAngle}”</div>
                     </div>
                     <div>
                       <div style={{ fontSize: 9, fontFamily: "'JetBrains Mono',monospace", color: 'rgba(229,72,77,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Icebreaker</div>
-                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>"{intel.icebreaker}"</div>
+                      <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.5 }}>“{intel.icebreaker}”</div>
                     </div>
                   </motion.div>
 
