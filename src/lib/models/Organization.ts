@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import mongoose, { Schema, models, model, type Document } from 'mongoose'
 
 export interface IOrganization extends Document {
@@ -30,7 +31,7 @@ export function generateInviteCode(): string {
   const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
   let code = ''
   for (let i = 0; i < 8; i++) {
-    code += alphabet[Math.floor(Math.random() * alphabet.length)]
+    code += alphabet[randomInt(alphabet.length)] // crypto-strength: codes must not be guessable
   }
   return code
 }
