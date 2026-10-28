@@ -489,18 +489,13 @@ async function enrichPlace(raw: any, idx: number, businessType: string, location
 /* ── DISCOVERY: Apify ──────────────────────────────────── */
 async function fetchViaApify(query: string, token: string, offset: number = 0): Promise<any[]> {
   console.log('[discover] Trying Apify for:', query)
-  const startRes = await fetch('https://api.apify.com/v2/acts/apify~google-maps-scraper/runs', {
+  const startRes = await fetch('https://api.apify.com/v2/acts/johnvc~google-maps-places-api/runs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ 
-      searchStringsArray: [query], 
-      maxCrawledPlaces: offset + 40, 
-      language: 'en', 
-      maxImages: 0, 
-      maxReviews: 0, 
-      scrapeContacts: true,
-      includeHistogram: false,
-      includeOpeningHours: false
+    body: JSON.stringify({
+      searchTerms: [query],
+      maxResultsPerSearch: offset + 40,
+      language: 'en'
     }),
   })
   if (!startRes.ok) throw new Error(`Apify start failed (${startRes.status})`)
@@ -512,7 +507,13 @@ async function fetchViaApify(query: string, token: string, offset: number = 0): 
     const status = st?.data?.status
     if (status === 'SUCCEEDED') {
       const items = await (await fetch(`https://api.apify.com/v2/actor-runs/${runId}/dataset/items?limit=40&offset=${offset}`, { headers: { Authorization: `Bearer ${token}` } })).json()
-      return (Array.isArray(items) ? items : []).map((p: any) => ({ ...p, _source: 'apify' }))
+      return (Array.isArray(items) ? items : []).filter((p: any) => !p.error_message).map((p: any) => ({
+        placeId: p.placeId || '', title: p.title || '',
+        address: p.address || '', phone: p.phoneNumber || '', website: p.website || '',
+        email: '', totalScore: p.rating ?? null, reviewsCount: p.ratingCount ?? 0,
+        url: p.placeId ? `https://www.google.com/maps/place/?q=place_id:${p.placeId}` : '',
+        category: p.type || '', _source: 'apify'
+      }))
     }
     if (status === 'FAILED' || status === 'ABORTED') throw new Error(`Apify ${status}`)
   }
